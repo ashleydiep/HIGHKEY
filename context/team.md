@@ -23,25 +23,18 @@ As a founder, your relationships are your leverage. The AI OS should know who's 
 
 ## Team Members
 
-### [Department / Function, e.g., "Sales Team"]
+### Operations / Transactions
 
 | Name | Role | Email | Notes |
 |------|------|-------|-------|
-| [Name] | [Title/function] | [Email] | [Key context — strengths, what they handle, how they prefer to communicate] |
-| [Name] | [Title/function] | [Email] | [Key context] |
+| Dillon Phung | Listing Concierge | dillonphung.tc@gmail.com | Handles listing management and client success after listing is taken |
+| Dillon Phung | Transaction Coordinator | DillonFungTC@gmail.com | Handles all transactions after going under contract to close |
 
-### [Department / Function, e.g., "Fulfilment Team"]
-
-| Name | Role | Email | Notes |
-|------|------|-------|-------|
-| [Name] | [Title/function] | [Email] | [Key context] |
-| [Name] | [Title/function] | [Email] | [Key context] |
-
-### [Department / Function, e.g., "Operations"]
+### Sales / Leadership
 
 | Name | Role | Email | Notes |
 |------|------|-------|-------|
-| [Name] | [Title/function] | [Email] | [Key context] |
+| Ashley Diep | Sales Manager | ashleydiep@exprealty.com | Handles getting and retaining new clients |
 
 ---
 

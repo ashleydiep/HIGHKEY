@@ -29,25 +29,23 @@ Without clear strategy, the AI OS makes generic recommendations. With it, every 
 
 [Rank your priorities. When two things compete for attention, which wins?]
 
-1. [e.g., Client retention and service quality]
-2. [e.g., New business development and revenue growth]
-3. [e.g., Team development and hiring]
-4. [e.g., Systems and automation]
-5. [e.g., Content and personal brand]
+1. New business (getting new clients from past clients, current transactions, and neighbors)
+2. Past client referrals and relationship building
+3. Content and brand (YouTube and Instagram ad strategy)
+4. Systems, automation, and team development
 
 ### The Leverage Filter
 
 [What questions should the AI OS ask before recommending an action?]
 
-- [e.g., Will this generate more revenue per hour of my time?]
-- [e.g., Can this be automated or delegated after the first iteration?]
-- [e.g., Does this compound over time, or is it a one-off task?]
+- How can this generate more revenue?
+- Can this be automated?
+- If this task can't be automated, is it still worth my time?
 
 ### The Quality Filter
 
-- [e.g., Is this something I'd be proud to show a client?]
-- [e.g., Does this meet the standard my brand represents?]
-- [e.g., Speed is critical, but never at the expense of quality.]
+- Client experience is paramount
+- Brand reputation is non-negotiable
 
 ---
 

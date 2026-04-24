@@ -30,18 +30,17 @@ Your AI OS is only as powerful as the data flowing into it. This file serves two
 
 | Service | Category | Purpose | Data Pattern | Connection | Status | Priority | Notes |
 |---------|----------|---------|--------------|------------|--------|----------|-------|
-| [e.g., Stripe] | Payments | Revenue, subscriptions, churn | Append-only | API | Not connected | High | |
-| [e.g., HubSpot] | CRM | Client pipeline, deals, contacts | Both | API + MCP | Not connected | High | |
-| [e.g., Google Calendar] | Productivity | Meetings, scheduling | Ever-changing | MCP | Not connected | Medium | |
-| [e.g., Slack] | Communication | Team messages, client channels | Both | API + MCP | Not connected | Medium | |
-| [e.g., Gmail] | Communication | Email, client comms | Both | API + MCP | Not connected | Medium | |
-| [e.g., Google Drive] | Storage | SOPs, shared files | Ever-changing | MCP | Not connected | Medium | |
-| [e.g., Otter.ai / Fireflies] | Meetings | Call transcripts | Append-only | API | Not connected | High | |
-| [e.g., Xero / QuickBooks] | Finance | P&L, invoicing, cash flow | Append-only | API | Not connected | High | |
-| [e.g., Notion] | Knowledge | Wikis, project docs, SOPs | Ever-changing | MCP | Not connected | Medium | |
-| [e.g., ClickUp / Asana] | Project Mgmt | Tasks, team workload | Both | API + MCP | Not connected | Low | |
-| [e.g., Google Analytics] | Marketing | Website traffic, conversions | Append-only | API | Not connected | Low | |
-| [e.g., Meta Ads] | Marketing | Ad spend, performance | Append-only | API | Not connected | Low | |
+| Go High-Level (GHL) | CRM | Client tracking, transactions, lead management | Both | API | Not connected | High | Main CRM for all business operations |
+| Skyslope | Forms/Signatures | Documents and e-signatures for transactions | Append-only | API | Not connected | High | For forms and signatures |
+| MLS | Real Estate | Market reports, property data | Append-only | API | Not connected | High | Houston MLS system |
+| HAR (Houston) | Real Estate | Market reports, property data | Append-only | API | Not connected | High | Houston Area Realtor data |
+| EXP Dashboard | Analytics | Deal tracking, production metrics | Append-only | API | Not connected | High | EXP Realty dashboard for analytics |
+| Google Calendar | Productivity | Meeting scheduling, appointments | Ever-changing | MCP | Not connected | Medium | Track all appointments |
+| Gmail | Communication | Email management | Append-only | API | Not connected | Medium | Email communications |
+| Notion | Knowledge | Notes, SOPs, documentation | Ever-changing | MCP | Not connected | Medium | Business notes and documentation |
+| Facebook | Social Media | Social media marketing | Append-only | API | Not connected | Medium | Social media channel |
+| YouTube | Social Media | Video marketing, brand building | Append-only | API | Not connected | Medium | YouTube ads and content strategy |
+| Instagram | Social Media | Social media marketing | Append-only | API | Not connected | Medium | Instagram ads and strategy |
 
 > **Data Pattern values:**
 > - **Append-only** — data written once, never modified (transcripts, messages, transactions, CRM activity logs). Needs API sync into Supabase so it accumulates and can be searched across time.

@@ -27,27 +27,30 @@ Start with whatever numbers you have. Even rough estimates are better than nothi
 
 [Fill in the metrics that matter most to your business. Add or remove rows as needed.]
 
-### [Company/Business Name]
+### PROAGENT, Realtor
 
 | Metric | Current Value | Target | Trend | Notes |
 |--------|--------------|--------|-------|-------|
-| Monthly revenue | | | | |
-| MRR (if subscription) | | | | |
-| Active clients | | | | |
-| Client churn rate | | | | |
-| Sales close rate | | | | |
-| Average deal value | | | | |
-| Pipeline value | | | | |
-| Team utilisation | | | | |
-| Profit margin | | | | |
+| Monthly revenue | $10,000 | | | Average from transactions |
+| Deals closed per month | 1.5 | 2-3 | Growth | Target 2-3 by end of year |
+| Active listings | 2-4 | | Monthly | New listings per month |
+| Client churn rate | Low | | | Dependent on if listings fall through |
 
-### Personal Brand / Marketing (if applicable)
+### COLLAB - Agent Recruitment
 
 | Metric | Current Value | Target | Trend | Notes |
 |--------|--------------|--------|-------|-------|
-| Email list size | | | | |
-| Social followers | | | | |
-| Content published (weekly) | | | | |
+| Number of agents | 16 | 50 | Growth | Target 50 by end of year |
+| Monthly revenue per agent | $500-$2,000 | | | Variable based on agent production |
+| Recruitment rate | 2 agents/month | | Consistent | |
+| Agent churn rate | Very low | | | Only 1 agent lost so far |
+
+### High Key Solutions
+
+| Metric | Current Value | Target | Trend | Notes |
+|--------|--------------|--------|-------|-------|
+| Revenue | $0 | | | Not yet generating revenue |
+| Status | Pre-launch | | | Building AI systems and products |
 | Inbound leads (monthly) | | | | |
 
 ---

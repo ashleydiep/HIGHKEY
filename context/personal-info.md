@@ -25,29 +25,24 @@ This is the one file no one else can write for you. Take the time to get it righ
 
 ## Your Role
 
-[What is your title and function? What are you ultimately accountable for? Are you a founder, CEO, operator, or something else?]
-
-[Example: "Founder and CEO of a digital marketing agency. Accountable for revenue, strategy, team, and client relationships. Day-to-day I split time between business development, team management, and service delivery oversight."]
+I'm a real estate agent and also do a lot of recruiting for my brokerage and do a lot of sales with sellers. I work with buyers, mainly sellers, and get a lot of my business from cold calling, past clients, and referrals. I am also starting to dabble in marketing with YouTube ads and eventually want to set up systems for Instagram and getting leads from Instagram and Facebook ads as well,
 
 ## Your North Star
 
-[What do you optimise for above everything else? What's the one metric or outcome that matters most?]
-
-[Example: "Maximise revenue while minimising my personal time investment. Every system and decision is evaluated against this filter."]
+Maximize for revenue. That means closing deals, getting listings or buyer contract signed, and then closing deals.
 
 ## How You Think
 
-[What's your decision-making style? Are you data-driven or instinct-led? Do you move fast and iterate, or plan carefully before acting? What do you refuse to compromise on?]
-
-[Example: "I'm data-driven but trust my gut on people decisions. I move fast — I'd rather ship at 80% and iterate than wait for 100%. I refuse to compromise on client experience or team culture."]
+I am absolutely data-driven. A lot of risk I do take for the potential of getting more revenue, but data-driven and planning before acting is the ideal way to go.
 
 ## Key Responsibilities
 
 [List the core areas you manage. These help the AI OS understand what tasks, analyses, and decisions are relevant to you.]
 
-- [e.g., Business development and sales strategy]
-- [e.g., Team hiring, management, and performance]
-- [e.g., Client relationship oversight]
+- Sales, getting clients, and putting systems and processes in place
+- Management of listings and leads I have a transaction coordinator handling my actual transactions.
+- I do agent recruitment; it's also getting agents and then putting them in a pipeline to meet my partners.
+- I have a lot of plans to do social media management as well.
 - [e.g., Financial planning and cash flow management]
 - [e.g., Product/service development]
 
