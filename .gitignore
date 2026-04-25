@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# Google OAuth credentials (contains client secret — never commit)
+gcp-oauth.keys.json
+
 # Databases
 *.db
 *.db-journal

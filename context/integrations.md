@@ -30,12 +30,12 @@ Your AI OS is only as powerful as the data flowing into it. This file serves two
 
 | Service | Category | Purpose | Data Pattern | Connection | Status | Priority | Notes |
 |---------|----------|---------|--------------|------------|--------|----------|-------|
-| Go High-Level (GHL) | CRM | Client tracking, transactions, lead management | Both | API | Not connected | High | Main CRM for all business operations |
+| Go High-Level (GHL) | CRM | Client tracking, transactions, lead management | Both | API + Live wrapper | Connected (Sync — scripts/sync/ghl.py \| Live — scripts/live/ghl.ts) | High | Main CRM for all business operations |
 | Skyslope | Forms/Signatures | Documents and e-signatures for transactions | Append-only | API | Not connected | High | For forms and signatures |
 | MLS | Real Estate | Market reports, property data | Append-only | API | Not connected | High | Houston MLS system |
 | HAR (Houston) | Real Estate | Market reports, property data | Append-only | API | Not connected | High | Houston Area Realtor data |
 | EXP Dashboard | Analytics | Deal tracking, production metrics | Append-only | API | Not connected | High | EXP Realty dashboard for analytics |
-| Google Calendar | Productivity | Meeting scheduling, appointments | Ever-changing | MCP | Not connected | Medium | Track all appointments |
+| Google Calendar | Productivity | Meeting scheduling, appointments | Ever-changing | MCP | Live (MCP — google-calendar) | Medium | Track all appointments |
 | Gmail | Communication | Email management | Append-only | API | Not connected | Medium | Email communications |
 | Notion | Knowledge | Notes, SOPs, documentation | Ever-changing | MCP | Not connected | Medium | Business notes and documentation |
 | Facebook | Social Media | Social media marketing | Append-only | API | Not connected | Medium | Social media channel |

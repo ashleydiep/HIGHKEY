@@ -1,0 +1,16 @@
+{
+  "name": "proagent-os",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "sync:ghl": "dotenv -e .env.local -- npx tsx scripts/sync/ghl.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "dotenv-cli": "^8.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.3",
+    "@types/node": "^22.15.3"
+  }
+}

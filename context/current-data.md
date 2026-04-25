@@ -35,6 +35,9 @@ Start with whatever numbers you have. Even rough estimates are better than nothi
 | Deals closed per month | 1.5 | 2-3 | Growth | Target 2-3 by end of year |
 | Active listings | 2-4 | | Monthly | New listings per month |
 | Client churn rate | Low | | | Dependent on if listings fall through |
+| Current inventory | 6 land listings + 4 homes | | | Total 10 active listings |
+| Listings under contract | 2 | | | Properties in escrow |
+| Buyer sales under contract | 3 | | | Buyer-side transactions in progress |
 
 ### COLLAB - Agent Recruitment
 
