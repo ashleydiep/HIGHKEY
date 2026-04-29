@@ -5,7 +5,7 @@ from typing import List
 
 VOYAGE_API_KEY = os.environ.get('VOYAGE_API_KEY')
 
-def embed_batch(texts: List[str], retries: int = 8) -> List[List[float]]:
+def embed_batch(texts: List[str], retries: int = 20) -> List[List[float]]:
     if not texts:
         return []
     if not VOYAGE_API_KEY:
@@ -20,8 +20,9 @@ def embed_batch(texts: List[str], retries: int = 8) -> List[List[float]]:
             timeout=60,
         )
         if res.status_code == 429:
-            wait = min(delay * (2 ** attempt), 120)
-            print(f'  [voyage] rate limited, waiting {wait:.0f}s...')
+            # Cap at 5 minutes max wait; stay at 120s from attempt 3 onward
+            wait = min(delay * (2 ** min(attempt, 3)), 300)
+            print(f'  [voyage] rate limited (attempt {attempt + 1}/{retries}), waiting {wait:.0f}s...')
             time.sleep(wait)
             continue
         res.raise_for_status()

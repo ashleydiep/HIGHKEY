@@ -2,15 +2,48 @@
   "mcpServers": {
     "google-calendar": {
       "type": "stdio",
-      "command": "npx",
+      "command": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin/npx",
       "args": ["-y", "@cocal/google-calendar-mcp"],
       "env": {
-        "GOOGLE_OAUTH_CREDENTIALS": "/Users/ashleydiep/Desktop/HIGHKEY/proagent-os/gcp-oauth.keys.json"
+        "GOOGLE_OAUTH_CREDENTIALS": "/Users/ashleydiep/Desktop/HIGHKEY/proagent-os/gcp-oauth.keys.json",
+        "PATH": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    },
+    "google-drive": {
+      "type": "stdio",
+      "command": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin/npx",
+      "args": ["-y", "@modelcontextprotocol/server-gdrive"],
+      "env": {
+        "GDRIVE_CREDENTIALS_PATH": "/Users/ashleydiep/Desktop/HIGHKEY/proagent-os/.gdrive-credentials.json",
+        "GDRIVE_OAUTH_PATH": "/Users/ashleydiep/Desktop/HIGHKEY/proagent-os/gcp-oauth.keys.json",
+        "PATH": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    },
+    "notion": {
+      "type": "stdio",
+      "command": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin/npx",
+      "args": ["-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer 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\", \"Notion-Version\": \"2022-06-28\"}",
+        "PATH": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    },
+    "gmail": {
+      "type": "stdio",
+      "command": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin/npx",
+      "args": [
+        "-y",
+        "gmail-mcp-server@latest",
+        "--client-id", "988864874499-2ebvarfomon1u117646k7l0nju3pgifr.apps.googleusercontent.com",
+        "--client-secret", "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"
+      ],
+      "env": {
+        "PATH": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin:/usr/local/bin:/usr/bin:/bin"
       }
     },
     "supabase": {
       "type": "stdio",
-      "command": "npx",
+      "command": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin/npx",
       "args": ["-y", "@supabase/mcp-server-supabase@0.7.0"],
       "env": {
         "SUPABASE_URL": "${SUPABASE_URL}",

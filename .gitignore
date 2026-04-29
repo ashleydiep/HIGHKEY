@@ -3,8 +3,12 @@
 .env.local
 .env.*.local
 
-# Google OAuth credentials (contains client secret — never commit)
+# Google OAuth credentials and tokens (contain secrets — never commit)
 gcp-oauth.keys.json
+google-ads.yaml
+.gdrive-credentials.json
+data/tokens/
+data/sync-state/
 
 # Databases
 *.db

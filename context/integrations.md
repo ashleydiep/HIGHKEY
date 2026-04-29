@@ -36,11 +36,12 @@ Your AI OS is only as powerful as the data flowing into it. This file serves two
 | HAR (Houston) | Real Estate | Market reports, property data | Append-only | API | Not connected | High | Houston Area Realtor data |
 | EXP Dashboard | Analytics | Deal tracking, production metrics | Append-only | API | Not connected | High | EXP Realty dashboard for analytics |
 | Google Calendar | Productivity | Meeting scheduling, appointments | Ever-changing | MCP | Live (MCP — google-calendar) | Medium | Track all appointments |
-| Gmail | Communication | Email management | Append-only | API | Not connected | Medium | Email communications |
-| Notion | Knowledge | Notes, SOPs, documentation | Ever-changing | MCP | Not connected | Medium | Business notes and documentation |
-| Facebook | Social Media | Social media marketing | Append-only | API | Not connected | Medium | Social media channel |
-| YouTube | Social Media | Video marketing, brand building | Append-only | API | Not connected | Medium | YouTube ads and content strategy |
-| Instagram | Social Media | Social media marketing | Append-only | API | Not connected | Medium | Instagram ads and strategy |
+| Gmail | Communication | Email management | Both | API + MCP | Connected (Sync — scripts/sync/gmail.py \| Live — MCP gmail-mcp-server) | Medium | Sync last 12mo non-promotional emails to Supabase; MCP for live queries |
+| Notion | Knowledge | Notes, SOPs, documentation | Ever-changing | MCP | Live (MCP — notion) | Medium | Business notes and documentation |
+| Facebook | Social Media | Facebook Page posts + analytics + Ads | Append-only | API | Connected (Sync — scripts/sync/meta.py + scripts/sync/facebook_ads.py) | Medium | Page posts, ad campaign performance synced to Supabase |
+| Instagram | Social Media | Instagram posts + analytics | Append-only | API | Connected (Sync — scripts/sync/meta.py) | Medium | Posts, likes, comments, saves, reach synced to Supabase |
+| Google Ads | Marketing | Ad campaign performance, spend, conversions | Append-only | API | Connected (Sync — scripts/sync/google_ads.py) | High | 90-day rolling daily campaign data in Supabase |
+| YouTube | Social Media | Video marketing, brand building | Append-only | API | Connected (Sync — scripts/sync/youtube.py) | Medium | Two channels: ProAgent Real Estate + Ashley Diep personal. Separate OAuth tokens per channel. |
 
 > **Data Pattern values:**
 > - **Append-only** — data written once, never modified (transcripts, messages, transactions, CRM activity logs). Needs API sync into Supabase so it accumulates and can be searched across time.
@@ -78,7 +79,7 @@ Use this as a checklist to make sure you've covered your bases:
 - **Calendar** — Meeting data (Google Calendar, Calendly)
 - **Documents** — Meeting transcripts, SOPs, client files (Google Drive, Notion)
 - **Project Management** — Task and workload data (ClickUp, Asana, Monday.com)
-
+ 
 ### Lower Priority (connect when ready)
 - **Marketing** — Ad performance, analytics (Meta Ads, Google Ads, GA4)
 - **Social Media** — Content performance (YouTube Analytics, LinkedIn, Instagram)
