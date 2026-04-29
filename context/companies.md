@@ -65,7 +65,13 @@ They are all in real estate. Me working as a real estate agent helps me be able 
 
 **8:00 AM - 11:00 AM:** Cold calling for sales (sellers and/or buyers)
 
+**9:30 AM - 10:00 AM:** Breakfast Club — daily sales training (Chad Cooley, COLLAB)
+
 **11:30 AM - 12:00 PM or 1:00 PM:** Calling agents (recruitment)
+
+**End of Day:**
+- Download today's Breakfast Club recording → drop in `~/breakfast-club/inbox/` → auto-processes in background (~30 seconds of effort)
+- Run `/sync` in Claude to sync all data sources (GHL, ads, email)
 
 **Current state:** Its in its growth phase, right now closing about 1.5 deals a month and need to be growing and scaling to at least 2-3 a month by the end of the year
 

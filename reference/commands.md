@@ -59,6 +59,42 @@ All commands are typed directly in the Claude Code chat window.
 
 ---
 
+## Sales Training — Breakfast Club Pipeline
+
+Process a daily Breakfast Club session into Supabase (transcribe → categorize → embed → store).
+
+**Terminal shortcut:**
+```bash
+bclub "https://facebook.com/..." --date 2026-04-29
+bclub ~/breakfast-club/inbox/april-29.mp4 --date 2026-04-29 --title "Price Objections"
+```
+
+**Daily workflow:**
+1. Download the Facebook group video using the Video DownloadHelper Chrome extension
+2. Drop the file in `~/breakfast-club/inbox/`
+3. Run `bclub ~/breakfast-club/inbox/filename.mp4` — takes ~5-8 min, then walks away
+
+**What gets stored per session (`sales_training_sessions` table):**
+- Full transcript, summary, key takeaways, word-for-word scripts
+- Objection/response pairs (structured JSON)
+- Categories: `sellers`, `buyers`, `objection_handlers`, `tonality`, `mindset`, `scripts`, `concepts`, `closing`, `follow_up`, `roleplay`
+- Voyage embedding for semantic search
+
+**Search training in Claude chat:**
+> "What did Breakfast Club teach about handling the commission objection?"
+> "Find scripts for when a seller says they already have an agent"
+
+**Scripts:**
+| Script | Purpose |
+|--------|---------|
+| `scripts/breakfast-club/process.py` | Full pipeline (download → transcribe → categorize → embed → Supabase) |
+| `scripts/breakfast-club/search.py` | Search training sessions by topic |
+| `scripts/breakfast-club/bclub` | Shell shortcut — sources .env.local automatically |
+
+**Requires:** `GROQ_API_KEY` in `.env.local` (free key at console.groq.com)
+
+---
+
 ## Sync Scripts (run manually or via `/sync`)
 
 Located in `scripts/sync/`. Can also be run directly in terminal.
