@@ -3,6 +3,6 @@
 # Usage: bclub "https://facebook.com/..." [--date YYYY-MM-DD] [--title "..."]
 #        bclub ~/breakfast-club/inbox/april-29.mp4 --date 2026-04-29
 set -a
-source /Users/ashleydiep/Desktop/HIGHKEY/proagent-os/.env.local
+source /Users/ashhub/Desktop/HIGHKEY/proagent-os/.env.local
 set +a
-python3 /Users/ashleydiep/Desktop/HIGHKEY/proagent-os/scripts/breakfast-club/process.py "$@"
+python3 /Users/ashhub/Desktop/HIGHKEY/proagent-os/scripts/breakfast-club/process.py "$@"

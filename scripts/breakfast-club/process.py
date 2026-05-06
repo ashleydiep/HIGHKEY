@@ -96,7 +96,7 @@ def download_from_facebook(url: str, tmp_dir: str) -> str:
 
 def _find_yt_dlp() -> str:
     for candidate in [
-        "/Users/ashleydiep/Library/Python/3.9/bin/yt-dlp",
+        "/Users/ashhub/Library/Python/3.9/bin/yt-dlp",
         "/usr/local/bin/yt-dlp",
         "/opt/homebrew/bin/yt-dlp",
         "yt-dlp",
