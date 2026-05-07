@@ -10,7 +10,7 @@ import os
 import sys
 import json
 import requests
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -60,6 +60,37 @@ def sb_get(table: str, params: dict) -> list:
 
 
 # ── Data pulls ────────────────────────────────────────────────────────────────
+def _cal_get(params: list) -> list:
+    resp = requests.get(
+        f'{SUPABASE_URL}/rest/v1/calendar_events',
+        headers={**SB_HEADERS, 'Prefer': 'count=none'},
+        params=params,
+        timeout=15,
+    )
+    return resp.json() if resp.ok else []
+
+
+def get_todays_events() -> list:
+    return _cal_get([
+        ('start_time', f'gte.{TODAY}T00:00:00Z'),
+        ('start_time', f'lte.{TODAY}T23:59:59Z'),
+        ('select', 'title,start_time,end_time,location,all_day'),
+        ('order', 'start_time.asc'),
+    ])
+
+
+def get_upcoming_events(days: int = 3) -> list:
+    tomorrow = (TODAY + timedelta(days=1)).isoformat()
+    end = (TODAY + timedelta(days=days)).isoformat()
+    return _cal_get([
+        ('start_time', f'gte.{tomorrow}T00:00:00Z'),
+        ('start_time', f'lte.{end}T23:59:59Z'),
+        ('select', 'title,start_time,location'),
+        ('order', 'start_time.asc'),
+        ('limit', '10'),
+    ])
+
+
 def get_pipeline() -> dict:
     rows = sb_get('ghl_opportunities', {
         'select': 'pipeline_name,stage_name,monetary_value,status',
@@ -233,6 +264,43 @@ def format_weekly_progress(wtd: dict, targets: Optional[dict]) -> str:
     return '\n'.join(lines)
 
 
+def format_calendar(today_events: list, upcoming: list) -> str:
+    def fmt_time(iso: str) -> str:
+        try:
+            dt = datetime.fromisoformat(iso.replace('Z', '+00:00'))
+            local = dt.astimezone()
+            return local.strftime('%-I:%M%p').lower()
+        except Exception:
+            return iso[:10]
+
+    lines = []
+    if today_events:
+        lines.append(f'**Today ({TODAY.strftime("%a %b %d")})**')
+        for e in today_events:
+            if e.get('all_day'):
+                time_str = 'all day'
+            else:
+                start = fmt_time(e.get('start_time', ''))
+                end = fmt_time(e.get('end_time', ''))
+                time_str = f'{start}–{end}'
+            loc = f' @ {e["location"]}' if e.get('location') else ''
+            lines.append(f'  {time_str}  {e["title"]}{loc}')
+    else:
+        lines.append(f'**Today ({TODAY.strftime("%a %b %d")})** — no events')
+
+    if upcoming:
+        lines.append(f'\n**Next 3 Days**')
+        for e in upcoming:
+            day = e.get('start_time', '')[:10]
+            try:
+                day = datetime.fromisoformat(day).strftime('%a %b %d')
+            except Exception:
+                pass
+            lines.append(f'  {day}  {e["title"]}')
+
+    return '\n'.join(lines)
+
+
 def format_bclub(session: Optional[dict]) -> str:
     if not session:
         return 'No Breakfast Club sessions in database yet.'
@@ -250,7 +318,7 @@ def format_bclub(session: Optional[dict]) -> str:
 
 # ── Generate brief with Claude ────────────────────────────────────────────────
 def generate_brief(pipeline_text: str, kpi_text: str, weekly_text: str, bclub_text: str,
-                   section7_fragment: str = '') -> str:
+                   calendar_text: str = '', section7_fragment: str = '') -> str:
     system = """You are the AI OS for Ashley Diep, a real estate agent and entrepreneur in Houston.
 
 Ashley runs three businesses:
@@ -276,12 +344,13 @@ Write in a direct, no-fluff tone. Ashley is data-driven. Reference actual number
 ## 3. Weekly Progress
 {weekly_text}
 
-## 4. Today's Schedule
-Write a time-blocked schedule for today based on Ashley's fixed routine and what needs the most attention this week based on the weekly progress above. Include:
-- 8:00–11:00am block (seller cold calling — specify what to focus on based on pipeline)
-- 9:30–10:00am (Breakfast Club — note it's during the calling block)
-- 11:30am–12:00pm block (agent recruiting — specify what to prioritize based on weekly targets)
-- Any afternoon priorities if there are pipeline follow-ups or closing tasks needed
+## 4. Today's Calendar & Schedule
+{calendar_text}
+
+Build a time-blocked schedule for today that incorporates the above calendar events AND Ashley's fixed routine:
+- 8:00–11:00am: seller cold calling (note what to focus on; Breakfast Club 9:30–10am runs during this block)
+- 11:30am–12:00pm: agent recruiting calls
+- Flag any calendar conflicts with the calling blocks
 Keep it tight — one line per block.
 
 ## 5. Latest Breakfast Club
@@ -329,6 +398,10 @@ def run_morning():
     print('  Pulling latest Breakfast Club session...')
     bclub = get_latest_bclub()
 
+    print('  Pulling calendar...')
+    today_events = get_todays_events()
+    upcoming_events = get_upcoming_events(days=3)
+
     # Decision Engine pre-brief
     pre_brief = None
     section7_fragment = ''
@@ -348,12 +421,13 @@ def run_morning():
         print(f'  Decision Engine pre-brief skipped: {e}')
 
     print('  Generating brief with Claude Opus...')
-    pipeline_text = format_pipeline(pipelines)
-    kpi_text      = format_kpis(yesterday_kpis, mtd_kpis)
-    weekly_text   = format_weekly_progress(wtd_kpis, weekly_targets)
-    bclub_text    = format_bclub(bclub)
+    pipeline_text  = format_pipeline(pipelines)
+    kpi_text       = format_kpis(yesterday_kpis, mtd_kpis)
+    weekly_text    = format_weekly_progress(wtd_kpis, weekly_targets)
+    bclub_text     = format_bclub(bclub)
+    calendar_text  = format_calendar(today_events, upcoming_events)
 
-    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text, section7_fragment)
+    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text, calendar_text, section7_fragment)
 
     # Decision Engine post-process
     if pre_brief is not None:
