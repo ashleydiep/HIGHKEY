@@ -69,8 +69,84 @@ const TOOLS = [
 
 const ALLOWED_CHAT_IDS = new Set([5304294443]);
 
+// Regex for decision commands
+const ACCEPT_RE = /^accept\s+(rec_[a-zA-Z0-9]+(?:\s+rec_[a-zA-Z0-9]+)*)\s*$/i;
+const REJECT_RE = /^reject\s+(rec_[a-zA-Z0-9]+)\s+(disagree|no-time|redundant|wrong-context|later)(?:\s+(\d+))?(?:\s+(.+))?$/i;
+const PENDING_RE = /^(pending|\/pending)\s*$/i;
+
 const conversations = new Map();
 const MAX_HISTORY = 10;
+
+// ── Decision Engine (Supabase direct) ────────────────────────────────────────
+async function sbGet(supabaseUrl, supabaseKey, path) {
+  const resp = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+  });
+  return resp.ok ? resp.json() : [];
+}
+
+async function sbPatch(supabaseUrl, supabaseKey, path, body) {
+  await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json', Prefer: 'return=minimal',
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+function addDays(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
+
+async function handleDecisionCommands(supabaseUrl, supabaseKey, text) {
+  // PENDING
+  if (PENDING_RE.test(text.trim())) {
+    const rows = await sbGet(supabaseUrl, supabaseKey,
+      'decisions?source=eq.ai-recommendation&status=eq.pending&select=short_id,question&order=created_at.asc');
+    if (!rows.length) return 'No pending recommendations. Clean slate ✓';
+    const list = rows.map(r => `[${r.short_id}] ${r.question}`).join('\n');
+    return `*Pending Recommendations (${rows.length}):*\n\n${list}\n\n_Reply: \`accept rec_xxx\` or \`reject rec_xxx disagree\`_`;
+  }
+
+  // ACCEPT
+  const acceptMatch = text.trim().match(ACCEPT_RE);
+  if (acceptMatch) {
+    const ids = acceptMatch[1].trim().split(/\s+/);
+    const results = [];
+    for (const shortId of ids) {
+      const rows = await sbGet(supabaseUrl, supabaseKey,
+        `decisions?short_id=eq.${shortId}&source=eq.ai-recommendation&status=eq.pending&select=id,short_id`);
+      if (!rows.length) { results.push(`${shortId}: not found`); continue; }
+      await sbPatch(supabaseUrl, supabaseKey, `decisions?id=eq.${rows[0].id}`,
+        { status: 'accepted', outcome_assessed_at: addDays(30) });
+      results.push(`${shortId}: ✓ accepted`);
+    }
+    return results.join('\n');
+  }
+
+  // REJECT
+  const rejectMatch = text.trim().match(REJECT_RE);
+  if (rejectMatch) {
+    const [, shortId, category, daysStr, note] = rejectMatch;
+    const rows = await sbGet(supabaseUrl, supabaseKey,
+      `decisions?short_id=eq.${shortId}&source=eq.ai-recommendation&status=eq.pending&select=id,short_id`);
+    if (!rows.length) return `${shortId}: not found or already actioned`;
+    const patch = { status: 'rejected', reason_category: category };
+    if (note) patch.rejection_note = note;
+    if (category === 'later') {
+      const days = daysStr ? parseInt(daysStr) : 7;
+      patch.re_surface_at = addDays(days);
+    }
+    await sbPatch(supabaseUrl, supabaseKey, `decisions?id=eq.${rows[0].id}`, patch);
+    return `${shortId}: rejected (${category})${category === 'later' ? ` — resurfaces in ${daysStr || 7} days` : ''}`;
+  }
+
+  return null; // not a decision command
+}
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
 async function saveDailyKpis(supabaseUrl, supabaseKey, data) {
@@ -215,14 +291,22 @@ export default {
       } else if (cmd) {
         await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, cmd);
       } else {
-        const reply = await callClaude(
-          env.ANTHROPIC_API_KEY,
-          env.SUPABASE_URL,
-          env.SUPABASE_SERVICE_ROLE_KEY,
-          chatId,
-          text,
+        // Check decision commands before sending to Claude
+        const decisionReply = await handleDecisionCommands(
+          env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, text
         );
-        await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, reply);
+        if (decisionReply) {
+          await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, decisionReply);
+        } else {
+          const reply = await callClaude(
+            env.ANTHROPIC_API_KEY,
+            env.SUPABASE_URL,
+            env.SUPABASE_SERVICE_ROLE_KEY,
+            chatId,
+            text,
+          );
+          await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, reply);
+        }
       }
     } catch (err) {
       console.error(err);

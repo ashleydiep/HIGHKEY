@@ -7,11 +7,14 @@ and saves it to outputs/briefs/YYYY-MM-DD.md
 """
 
 import os
+import sys
 import json
 import requests
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
+
+MODE = "evening" if "--mode=evening" in sys.argv else "morning"
 
 # ── Credentials ───────────────────────────────────────────────────────────────
 env_file = Path(__file__).parents[1] / '.env.local'
@@ -246,7 +249,8 @@ def format_bclub(session: Optional[dict]) -> str:
 
 
 # ── Generate brief with Claude ────────────────────────────────────────────────
-def generate_brief(pipeline_text: str, kpi_text: str, weekly_text: str, bclub_text: str) -> str:
+def generate_brief(pipeline_text: str, kpi_text: str, weekly_text: str, bclub_text: str,
+                   section7_fragment: str = '') -> str:
     system = """You are the AI OS for Ashley Diep, a real estate agent and entrepreneur in Houston.
 
 Ashley runs three businesses:
@@ -284,7 +288,7 @@ Keep it tight — one line per block.
 {bclub_text}
 
 ## 6. Today's Top 3 Priorities
-3 specific, actionable priorities for today. Reference actual numbers. If something is behind target, name it and say what to do about it."""
+3 specific, actionable priorities for today. Reference actual numbers. If something is behind target, name it and say what to do about it.{section7_fragment}"""
 
     resp = requests.post(
         'https://api.anthropic.com/v1/messages',
@@ -295,7 +299,7 @@ Keep it tight — one line per block.
         },
         json={
             'model': 'claude-opus-4-7',
-            'max_tokens': 2000,
+            'max_tokens': 2500,
             'system': system,
             'messages': [{'role': 'user', 'content': user}],
         },
@@ -306,7 +310,7 @@ Keep it tight — one line per block.
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
-def main():
+def run_morning():
     print(f'\nGenerating Daily Brief for {TODAY}...')
 
     print('  Pulling GHL pipeline...')
@@ -325,13 +329,60 @@ def main():
     print('  Pulling latest Breakfast Club session...')
     bclub = get_latest_bclub()
 
+    # Decision Engine pre-brief
+    pre_brief = None
+    section7_fragment = ''
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from scripts.decisions.brief_integration import (
+            run_pre_brief, build_section7_prompt_fragment, post_process_brief,
+            render_section7_gated, render_reviews_due_block, render_revisit_block,
+            mark_revisits_surfaced, render_section8,
+        )
+        print('  Running Decision Engine pre-brief...')
+        pre_brief = run_pre_brief()
+        if pre_brief.expired_now:
+            print(f'  (Expired {pre_brief.expired_now} stale pending rec(s))')
+        section7_fragment = build_section7_prompt_fragment(pre_brief)
+    except Exception as e:
+        print(f'  Decision Engine pre-brief skipped: {e}')
+
     print('  Generating brief with Claude Opus...')
     pipeline_text = format_pipeline(pipelines)
     kpi_text      = format_kpis(yesterday_kpis, mtd_kpis)
     weekly_text   = format_weekly_progress(wtd_kpis, weekly_targets)
     bclub_text    = format_bclub(bclub)
 
-    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text)
+    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text, section7_fragment)
+
+    # Decision Engine post-process
+    if pre_brief is not None:
+        try:
+            if not pre_brief.gate_active:
+                result = post_process_brief(brief)
+                brief = result['brief']
+                if result['emitted']:
+                    print(f'  Decision Engine: emitted {len(result["emitted"])} rec(s)')
+                if result['suppressed']:
+                    print(f'  Decision Engine: suppressed {len(result["suppressed"])} rec(s)')
+            else:
+                brief += '\n' + render_section7_gated(pre_brief)
+
+            reviews_block = render_reviews_due_block(pre_brief)
+            revisits_block = render_revisit_block(pre_brief)
+            if reviews_block:
+                brief += '\n' + reviews_block
+            if revisits_block:
+                brief += '\n' + revisits_block
+            if pre_brief.revisits_due:
+                mark_revisits_surfaced(pre_brief)
+
+            from datetime import datetime
+            section8 = render_section8(datetime.combine(TODAY, datetime.min.time()))
+            if section8:
+                brief += '\n' + section8
+        except Exception as e:
+            print(f'  Decision Engine post-process skipped: {e}')
 
     out_path = OUTPUTS_DIR / f'{TODAY}.md'
     out_path.write_text(brief)
@@ -339,6 +390,30 @@ def main():
     print('─' * 60)
     print(brief)
     print('─' * 60)
+
+
+def run_evening():
+    print(f'\nGenerating Evening Recap for {TODAY}...')
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from scripts.decisions.brief_integration import build_evening_recap
+        recap = build_evening_recap()
+    except Exception as e:
+        recap = f'Evening recap unavailable: {e}'
+
+    out_path = OUTPUTS_DIR / f'{TODAY}-evening.md'
+    out_path.write_text(recap)
+    print(f'\n  Saved to: outputs/briefs/{TODAY}-evening.md\n')
+    print('─' * 60)
+    print(recap)
+    print('─' * 60)
+
+
+def main():
+    if MODE == 'evening':
+        run_evening()
+    else:
+        run_morning()
 
 
 if __name__ == '__main__':
