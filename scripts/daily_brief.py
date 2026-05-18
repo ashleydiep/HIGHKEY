@@ -108,6 +108,27 @@ def get_pipeline() -> dict:
     return pipelines
 
 
+def get_closed_deals() -> dict:
+    rows = sb_get('ghl_opportunities', {
+        'select': 'pipeline_name,monetary_value,last_stage_change_at',
+        'status': 'eq.won',
+        'last_stage_change_at': f'gte.{FIRST_OF_MONTH.isoformat()}',
+    })
+    ytd_rows = sb_get('ghl_opportunities', {
+        'select': 'pipeline_name,monetary_value',
+        'status': 'eq.won',
+        'last_stage_change_at': f'gte.{TODAY.replace(month=1, day=1).isoformat()}',
+    })
+    mtd_count = len(rows)
+    mtd_value = sum(float(r.get('monetary_value') or 0) for r in rows)
+    ytd_count = len(ytd_rows)
+    ytd_value = sum(float(r.get('monetary_value') or 0) for r in ytd_rows)
+    return {
+        'mtd_count': mtd_count, 'mtd_value': mtd_value,
+        'ytd_count': ytd_count, 'ytd_value': ytd_value,
+    }
+
+
 def get_yesterday_kpis() -> Optional[dict]:
     rows = sb_get('daily_kpis', {'date': f'eq.{YESTERDAY}', 'select': '*'})
     return rows[0] if rows else None
@@ -119,7 +140,8 @@ def get_mtd_kpis() -> dict:
         'fsbo_preview_set,fsbo_met,fsbo_listing,listings_other,listings,'
         'buyer_appts_set,buyer_appts_met,buyer_contracts_signed,closings,'
         'agent_contacts,agent_discoveries_set,agent_discoveries_met,'
-        'agent_3ways_set,agent_3ways_met,agent_verbals,agent_onboarded'
+        'agent_3ways_set,agent_3ways_met,agent_verbals,agent_onboarded,'
+        'stories_posted,posts_reels_posted,youtube_posted'
     )
     rows = sb_get('daily_kpis', {'date': f'gte.{FIRST_OF_MONTH}', 'select': fields})
     totals = {f: 0 for f in fields.split(',')}
@@ -134,7 +156,8 @@ def get_wtd_kpis() -> dict:
         'contacts,appts_set,appts_met,listings,closings,'
         'buyer_appts_set,buyer_appts_met,buyer_contracts_signed,'
         'agent_contacts,agent_discoveries_set,agent_discoveries_met,'
-        'agent_3ways_set,agent_3ways_met,agent_verbals,agent_onboarded'
+        'agent_3ways_set,agent_3ways_met,agent_verbals,agent_onboarded,'
+        'stories_posted,posts_reels_posted,youtube_posted'
     )
     rows = sb_get('daily_kpis', {'date': f'gte.{WEEK_START}', 'select': fields})
     totals = {f: 0 for f in fields.split(',')}
@@ -182,14 +205,22 @@ def vs(actual: int, target: int) -> str:
 
 
 # ── Format sections ───────────────────────────────────────────────────────────
-def format_pipeline(pipelines: dict) -> str:
-    if not pipelines:
-        return 'No open opportunities found in GHL.'
+def format_pipeline(pipelines: dict, closed: dict) -> str:
     lines = []
+
+    lines.append(f'**Closed Deals**')
+    lines.append(f'  MTD: {closed["mtd_count"]} deals | ${closed["mtd_value"]:,.0f} commission')
+    lines.append(f'  YTD: {closed["ytd_count"]} deals | ${closed["ytd_value"]:,.0f} commission')
+
+    if not pipelines:
+        lines.append('\nNo open opportunities found in GHL.')
+        return '\n'.join(lines)
+
+    lines.append('')
     for pipeline, stages in pipelines.items():
         total_count = sum(s['count'] for s in stages.values())
         total_value = sum(s['value'] for s in stages.values())
-        lines.append(f'\n**{pipeline}** — {total_count} open | ${total_value:,.0f} total value')
+        lines.append(f'**{pipeline}** — {total_count} open | ${total_value:,.0f} total value')
         for stage, data in stages.items():
             val = f'${data["value"]:,.0f}'
             lines.append(f'  • {stage}: {data["count"]} ({val})')
@@ -261,6 +292,12 @@ def format_weekly_progress(wtd: dict, targets: Optional[dict]) -> str:
     lines.append(f'  Verbals:         {vs(wtd["agent_verbals"], a.get("verbals", 0))}')
     lines.append(f'  Onboarded:       {vs(wtd["agent_onboarded"], a.get("onboarded", 0))}')
 
+    c = targets.get('content', {})
+    lines.append('\n**CONTENT** (WTD vs target)')
+    lines.append(f'  Stories:         {vs(wtd.get("stories_posted", 0), c.get("stories", 5))}')
+    lines.append(f'  Posts/Reels:     {vs(wtd.get("posts_reels_posted", 0), c.get("posts_reels", 5))}')
+    lines.append(f'  YouTube:         {vs(wtd.get("youtube_posted", 0), c.get("youtube", 1))}')
+
     return '\n'.join(lines)
 
 
@@ -301,6 +338,41 @@ def format_calendar(today_events: list, upcoming: list) -> str:
     return '\n'.join(lines)
 
 
+def format_content(mtd: dict, wtd: dict) -> str:
+    daily_target_stories = 1
+    daily_target_posts   = 1
+    days_elapsed = max(TODAY.day - 1, 1)
+    work_days_elapsed = max(TODAY.weekday(), 1)
+
+    mtd_stories = mtd.get('stories_posted', 0)
+    mtd_posts   = mtd.get('posts_reels_posted', 0)
+    mtd_yt      = mtd.get('youtube_posted', 0)
+    wtd_stories = wtd.get('stories_posted', 0)
+    wtd_posts   = wtd.get('posts_reels_posted', 0)
+    wtd_yt      = wtd.get('youtube_posted', 0)
+
+    mtd_story_target = days_elapsed * daily_target_stories
+    mtd_post_target  = days_elapsed * daily_target_posts
+
+    def gap(actual, target):
+        diff = target - actual
+        if diff <= 0:
+            return f'{actual} ✓'
+        return f'{actual} ({diff} behind)'
+
+    lines = [
+        f'**MTD Content ({FIRST_OF_MONTH.strftime("%b %Y")})**',
+        f'  Stories:     {gap(mtd_stories, mtd_story_target)}  (target: 1/day)',
+        f'  Posts/Reels: {gap(mtd_posts, mtd_post_target)}  (target: 1/day)',
+        f'  YouTube:     {mtd_yt} posted',
+        f'\n**WTD Content (this week)**',
+        f'  Stories:     {wtd_stories}',
+        f'  Posts/Reels: {wtd_posts}',
+        f'  YouTube:     {wtd_yt}',
+    ]
+    return '\n'.join(lines)
+
+
 def format_bclub(session: Optional[dict]) -> str:
     if not session:
         return 'No Breakfast Club sessions in database yet.'
@@ -318,7 +390,8 @@ def format_bclub(session: Optional[dict]) -> str:
 
 # ── Generate brief with Claude ────────────────────────────────────────────────
 def generate_brief(pipeline_text: str, kpi_text: str, weekly_text: str, bclub_text: str,
-                   calendar_text: str = '', section7_fragment: str = '') -> str:
+                   calendar_text: str = '', content_text: str = '',
+                   section7_fragment: str = '') -> str:
     system = """You are the AI OS for Ashley Diep, a real estate agent and entrepreneur in Houston.
 
 Ashley runs three businesses:
@@ -329,9 +402,22 @@ Ashley runs three businesses:
 Daily schedule: 8–11am seller cold calling | 9:30–10am Breakfast Club | 11:30am–12pm agent recruiting calls
 Target: 2 seller appts/day set | ~25 contacts per appt | relationship-based agent recruiting
 
+Content goals (critical for brand and lead gen):
+- Instagram/Facebook: 1 story/day + 1 post or reel/day (every single day)
+- YouTube: consistent posting to feed home evaluation funnel
+- Content feeds seller and buyer leads, agent recruitment visibility, and High Key Solutions brand
+- If content is behind, flag it — missed posting days compound fast
+
 Write in a direct, no-fluff tone. Ashley is data-driven. Reference actual numbers in recommendations."""
 
-    user = f"""Generate Ashley's Daily Brief for {TODAY.strftime('%A, %B %d, %Y')}.
+    friday_note = ""
+    if TODAY.weekday() == 4:  # Friday
+        friday_note = "\n\nIMPORTANT: Today is Friday. Always block 11:00am–12:00pm for YouTube recording — this is a fixed weekly habit immediately after the calling block. List it explicitly in the schedule and include it as a priority."
+    saturday_note = ""
+    if TODAY.weekday() == 5:  # Saturday
+        saturday_note = "\n\nIMPORTANT: Today is Saturday. Always block 9:00–10:00am for YouTube recording — this is a fixed weekly habit. List it explicitly in the schedule and include it as a priority."
+
+    user = f"""Generate Ashley's Daily Brief for {TODAY.strftime('%A, %B %d, %Y')}.{friday_note}{saturday_note}
 
 # Daily Brief — {TODAY.strftime('%A, %B %d, %Y')}
 
@@ -356,8 +442,13 @@ Keep it tight — one line per block.
 ## 5. Latest Breakfast Club
 {bclub_text}
 
-## 6. Today's Top 3 Priorities
-3 specific, actionable priorities for today. Reference actual numbers. If something is behind target, name it and say what to do about it.{section7_fragment}"""
+## 6. Content & Brand
+{content_text}
+
+Flag if stories or posts are behind the daily target. Suggest what type of content to post today based on Ashley's priorities (seller leads, agent recruiting, High Key Solutions brand).
+
+## 7. Today's Top 3 Priorities
+3 specific, actionable priorities for today. Reference actual numbers. If something is behind target — including content — name it and say what to do about it.{section7_fragment}"""
 
     resp = requests.post(
         'https://api.anthropic.com/v1/messages',
@@ -384,6 +475,7 @@ def run_morning():
 
     print('  Pulling GHL pipeline...')
     pipelines = get_pipeline()
+    closed_deals = get_closed_deals()
 
     print('  Pulling KPIs...')
     yesterday_kpis = get_yesterday_kpis()
@@ -421,13 +513,14 @@ def run_morning():
         print(f'  Decision Engine pre-brief skipped: {e}')
 
     print('  Generating brief with Claude Opus...')
-    pipeline_text  = format_pipeline(pipelines)
+    pipeline_text  = format_pipeline(pipelines, closed_deals)
     kpi_text       = format_kpis(yesterday_kpis, mtd_kpis)
     weekly_text    = format_weekly_progress(wtd_kpis, weekly_targets)
     bclub_text     = format_bclub(bclub)
     calendar_text  = format_calendar(today_events, upcoming_events)
+    content_text   = format_content(mtd_kpis, wtd_kpis)
 
-    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text, calendar_text, section7_fragment)
+    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text, calendar_text, content_text, section7_fragment)
 
     # Decision Engine post-process
     if pre_brief is not None:

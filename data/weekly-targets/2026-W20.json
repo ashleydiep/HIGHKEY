@@ -1,0 +1,33 @@
+{
+  "week": "2026-W20",
+  "week_start": "2026-05-11",
+  "week_end": "2026-05-15",
+  "generated_on": "2026-05-11",
+  "seller": {
+    "contacts": 125,
+    "appts_set": 5,
+    "appts_met": 2,
+    "listings": 1,
+    "closings": 0
+  },
+  "buyer": {
+    "appts_set": 0,
+    "appts_met": 0,
+    "contracts_signed": 0
+  },
+  "agent": {
+    "contacts": 15,
+    "discoveries_set": 3,
+    "discoveries_met": 2,
+    "3ways_set": 1,
+    "3ways_met": 1,
+    "verbals": 1,
+    "onboarded": 0
+  },
+  "content": {
+    "stories": 5,
+    "posts_reels": 2,
+    "youtube": 2
+  },
+  "focus_note": "Convert the 108 agents sitting in 'Appointment Scheduled' in GHL by running all 2 discovery meetings and completing at least 1 three-way call to generate your first verbal commitment of the year."
+}

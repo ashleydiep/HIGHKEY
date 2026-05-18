@@ -58,8 +58,13 @@ Ask for each metric below. Ask them all at once in a single message — don't as
 **CLOSINGS**
 21. Closings today
 
+**CONTENT**
+22. Stories posted (Instagram/Facebook)
+23. Posts or Reels posted
+24. YouTube videos posted
+
 **NOTES**
-22. Any notes for the day? (optional — press Enter to skip)
+25. Any notes for the day? (optional — press Enter to skip)
 
 Accept replies in any format — e.g. "1: 45, 2: 3, 3: 10..." or just numbers in order. Parse intelligently.
 
@@ -98,6 +103,9 @@ Headers: Prefer: resolution=merge-duplicates
   "agent_verbals": 0,
   "agent_onboarded": 0,
   "closings": 0,
+  "stories_posted": 0,
+  "posts_reels_posted": 0,
+  "youtube_posted": 0,
   "notes": ""
 }
 ```
@@ -141,6 +149,9 @@ Display the following report:
 | Verbals | X |
 | Agents Onboarded | X |
 | Closings | X |
+| Stories Posted | X |
+| Posts/Reels Posted | X |
+| YouTube Posted | X |
 
 ### MTD vs YTD
 | Metric | MTD | YTD |

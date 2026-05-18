@@ -31,7 +31,8 @@ Start with whatever numbers you have. Even rough estimates are better than nothi
 
 | Metric | Current Value | Target | Trend | Notes |
 |--------|--------------|--------|-------|-------|
-| Monthly revenue | $10,000 | | | Average from transactions |
+| YTD net commission | $46,387 | | | As of 2026-05-08 |
+| YTD deals closed | 8 | | | 2 leases + 6 buyer/seller transactions |
 | Deals closed per month | 1.5 | 2-3 | Growth | Target 2-3 by end of year |
 | Active listings | 2-4 | | Monthly | New listings per month |
 | Client churn rate | Low | | | Dependent on if listings fall through |

@@ -38,11 +38,12 @@ WEEK_KEY    = TODAY.strftime('%Y-W%V')
 LAST_WEEK_START = WEEK_START - timedelta(days=7)
 FIRST_OF_YEAR   = TODAY.replace(month=1, day=1)
 
-SELLER_FIELDS = ['contacts', 'leads', 'appts_set', 'appts_met', 'listings', 'closings']
-BUYER_FIELDS  = ['buyer_appts_set', 'buyer_appts_met', 'buyer_contracts_signed']
-AGENT_FIELDS  = ['agent_contacts', 'agent_discoveries_set', 'agent_discoveries_met',
-                 'agent_3ways_set', 'agent_3ways_met', 'agent_verbals', 'agent_onboarded']
-ALL_FIELDS    = SELLER_FIELDS + BUYER_FIELDS + AGENT_FIELDS
+SELLER_FIELDS  = ['contacts', 'leads', 'appts_set', 'appts_met', 'listings', 'closings']
+BUYER_FIELDS   = ['buyer_appts_set', 'buyer_appts_met', 'buyer_contracts_signed']
+AGENT_FIELDS   = ['agent_contacts', 'agent_discoveries_set', 'agent_discoveries_met',
+                  'agent_3ways_set', 'agent_3ways_met', 'agent_verbals', 'agent_onboarded']
+CONTENT_FIELDS = ['stories_posted', 'posts_reels_posted', 'youtube_posted']
+ALL_FIELDS     = SELLER_FIELDS + BUYER_FIELDS + AGENT_FIELDS + CONTENT_FIELDS
 
 
 # ── Supabase helpers ──────────────────────────────────────────────────────────
@@ -116,15 +117,18 @@ YEAR-END GOALS:
 YTD ACTUALS:
 Seller — contacts: {ytd['contacts']}, appts set: {ytd['appts_set']}, appts met: {ytd['appts_met']}, listings: {ytd['listings']}, closings: {ytd['closings']}
 Buyer  — appts set: {ytd['buyer_appts_set']}, met: {ytd['buyer_appts_met']}, contracts: {ytd['buyer_contracts_signed']}
-Agent  — contacts: {ytd['agent_contacts']}, discoveries set: {ytd['agent_discoveries_set']}, met: {ytd['agent_discoveries_met']}, 3-ways set: {ytd['agent_3ways_set']}, met: {ytd['agent_3ways_met']}, verbals: {ytd['agent_verbals']}, onboarded: {ytd['agent_onboarded']}
+Agent   — contacts: {ytd['agent_contacts']}, discoveries set: {ytd['agent_discoveries_set']}, met: {ytd['agent_discoveries_met']}, 3-ways set: {ytd['agent_3ways_set']}, met: {ytd['agent_3ways_met']}, verbals: {ytd['agent_verbals']}, onboarded: {ytd['agent_onboarded']}
+Content — stories: {ytd['stories_posted']}, posts/reels: {ytd['posts_reels_posted']}, YouTube: {ytd['youtube_posted']}
 
 LAST WEEK:
-Seller — contacts: {last_week['contacts']}, appts set: {last_week['appts_set']}, met: {last_week['appts_met']}
-Agent  — contacts: {last_week['agent_contacts']}, discoveries set: {last_week['agent_discoveries_set']}, met: {last_week['agent_discoveries_met']}, verbals: {last_week['agent_verbals']}, onboarded: {last_week['agent_onboarded']}
+Seller  — contacts: {last_week['contacts']}, appts set: {last_week['appts_set']}, met: {last_week['appts_met']}
+Agent   — contacts: {last_week['agent_contacts']}, discoveries set: {last_week['agent_discoveries_set']}, met: {last_week['agent_discoveries_met']}, verbals: {last_week['agent_verbals']}, onboarded: {last_week['agent_onboarded']}
+Content — stories: {last_week['stories_posted']}, posts/reels: {last_week['posts_reels_posted']}, YouTube: {last_week['youtube_posted']}
 
 AGENT PIPELINE (GHL): {json.dumps(agent_pipeline)}
 
 Daily schedule: 8–11am seller calls | 11:30am–12pm agent calls | ~25 seller contacts per appt set | relationship-based agent recruiting
+Content goals: 1 story/day + 1 post or reel/day (every day, all platforms) | YouTube: consistent posting to feed home eval funnel
 
 Return ONLY valid JSON:
 {{
@@ -135,6 +139,7 @@ Return ONLY valid JSON:
   "seller": {{"contacts": 0, "appts_set": 0, "appts_met": 0, "listings": 0, "closings": 0}},
   "buyer": {{"appts_set": 0, "appts_met": 0, "contracts_signed": 0}},
   "agent": {{"contacts": 0, "discoveries_set": 0, "discoveries_met": 0, "3ways_set": 0, "3ways_met": 0, "verbals": 0, "onboarded": 0}},
+  "content": {{"stories": 5, "posts_reels": 5, "youtube": 1}},
   "focus_note": "<one sentence: the single most important focus this week>"
 }}
 
@@ -180,6 +185,10 @@ def format_targets(t: dict) -> str:
         f"  3-Ways Met:      {t['agent']['3ways_met']}",
         f"  Verbals:         {t['agent']['verbals']}",
         f"  Onboarded:       {t['agent']['onboarded']}",
+        f"\nCONTENT",
+        f"  Stories:         {t.get('content', {}).get('stories', 5)}",
+        f"  Posts/Reels:     {t.get('content', {}).get('posts_reels', 5)}",
+        f"  YouTube:         {t.get('content', {}).get('youtube', 1)}",
     ]
     return '\n'.join(lines)
 
