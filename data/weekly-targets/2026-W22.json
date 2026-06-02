@@ -1,0 +1,33 @@
+{
+  "week": "2026-W22",
+  "week_start": "2026-05-25",
+  "week_end": "2026-05-29",
+  "generated_on": "2026-05-26",
+  "seller": {
+    "contacts": 125,
+    "appts_set": 5,
+    "appts_met": 2,
+    "listings": 1,
+    "closings": 2
+  },
+  "buyer": {
+    "appts_set": 1,
+    "appts_met": 1,
+    "contracts_signed": 0
+  },
+  "agent": {
+    "contacts": 25,
+    "discoveries_set": 3,
+    "discoveries_met": 2,
+    "3ways_set": 1,
+    "3ways_met": 1,
+    "verbals": 1,
+    "onboarded": 0
+  },
+  "content": {
+    "stories": 5,
+    "posts_reels": 3,
+    "youtube": 2
+  },
+  "focus_note": "1 listing taken, 2 YouTube videos created, and finish the AI agent follow-up automation for unresponsive agents (High Key Solutions). These are the 3 non-negotiables this week."
+}

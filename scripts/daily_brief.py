@@ -108,6 +108,63 @@ def get_pipeline() -> dict:
     return pipelines
 
 
+def get_hot_sellers() -> list:
+    priority_stages = {'Apt Set', 'Apt Attended-Not Signed', 'Apt Attended - Not Signed', 'Listing Taken'}
+
+    # Pull by priority stages
+    stage_rows = sb_get('ghl_opportunities', {
+        'select': 'contact_name,contact_phone,stage_name,monetary_value,last_stage_change_at,created_at',
+        'pipeline_name': 'eq.Real Estate Pipeline',
+        'status': 'eq.open',
+        'order': 'last_stage_change_at.desc',
+    })
+    stage_hits = [r for r in stage_rows if r.get('stage_name') in priority_stages]
+
+    # Pull hot-30 tagged contacts not already in stage_hits
+    tag_rows = sb_get('ghl_contacts', {
+        'select': 'full_name,phone,tags,date_updated',
+        'tags': 'cs.{"hot-30"}',
+        'order': 'date_updated.desc',
+    })
+    stage_names = {r.get('contact_name') for r in stage_hits}
+    tag_hits = [r for r in tag_rows if r.get('full_name') not in stage_names]
+
+    results = []
+    for r in stage_hits:
+        days_ago = ''
+        try:
+            changed = datetime.fromisoformat((r.get('last_stage_change_at') or '').replace('Z', '+00:00'))
+            days_ago = f'{(datetime.now(changed.tzinfo) - changed).days}d ago'
+        except Exception:
+            pass
+        results.append({
+            'name': r.get('contact_name') or 'Unknown',
+            'phone': r.get('contact_phone') or '',
+            'stage': r.get('stage_name') or '',
+            'value': float(r.get('monetary_value') or 0),
+            'last_activity': days_ago,
+            'source': 'stage',
+        })
+
+    for r in tag_hits:
+        days_ago = ''
+        try:
+            updated = datetime.fromisoformat((r.get('date_updated') or '').replace('Z', '+00:00'))
+            days_ago = f'{(datetime.now(updated.tzinfo) - updated).days}d ago'
+        except Exception:
+            pass
+        results.append({
+            'name': r.get('full_name') or 'Unknown',
+            'phone': r.get('phone') or '',
+            'stage': 'hot-30 tag',
+            'value': 0,
+            'last_activity': days_ago,
+            'source': 'tag',
+        })
+
+    return results
+
+
 def get_closed_deals() -> dict:
     rows = sb_get('ghl_opportunities', {
         'select': 'pipeline_name,monetary_value,last_stage_change_at',
@@ -373,6 +430,29 @@ def format_content(mtd: dict, wtd: dict) -> str:
     return '\n'.join(lines)
 
 
+def format_hot_sellers(sellers: list) -> str:
+    if not sellers:
+        return 'No hot sellers found. Tag contacts `hot-30` in GHL or move them to Apt Set / Attended Not Signed.'
+
+    stage_order = {
+        'Apt Attended - Not Signed': 0,
+        'Apt Attended-Not Signed': 0,
+        'Listing Taken': 1,
+        'Apt Set': 2,
+        'hot-30 tag': 3,
+    }
+    sellers_sorted = sorted(sellers, key=lambda x: stage_order.get(x['stage'], 9))
+
+    lines = []
+    for s in sellers_sorted:
+        val = f' | ${s["value"]:,.0f}' if s['value'] > 0 else ''
+        activity = f' | last activity: {s["last_activity"]}' if s['last_activity'] else ''
+        flag = ' ⚠️ no value set' if s['value'] == 0 and s['source'] == 'stage' else ''
+        lines.append(f'  • **{s["name"]}** — {s["stage"]}{val}{activity}{flag}')
+
+    return '\n'.join(lines)
+
+
 def format_bclub(session: Optional[dict]) -> str:
     if not session:
         return 'No Breakfast Club sessions in database yet.'
@@ -391,7 +471,7 @@ def format_bclub(session: Optional[dict]) -> str:
 # ── Generate brief with Claude ────────────────────────────────────────────────
 def generate_brief(pipeline_text: str, kpi_text: str, weekly_text: str, bclub_text: str,
                    calendar_text: str = '', content_text: str = '',
-                   section7_fragment: str = '') -> str:
+                   hot_sellers_text: str = '', section7_fragment: str = '') -> str:
     system = """You are the AI OS for Ashley Diep, a real estate agent and entrepreneur in Houston.
 
 Ashley runs three businesses:
@@ -442,12 +522,17 @@ Keep it tight — one line per block.
 ## 5. Latest Breakfast Club
 {bclub_text}
 
-## 6. Content & Brand
+## 6. Hot Seller Radar
+{hot_sellers_text}
+
+For each person: note how long since last contact, what their next step should be, and flag anyone overdue for a follow-up (no activity in 7+ days). Keep it tight — one action per person.
+
+## 7. Content & Brand
 {content_text}
 
 Flag if stories or posts are behind the daily target. Suggest what type of content to post today based on Ashley's priorities (seller leads, agent recruiting, High Key Solutions brand).
 
-## 7. Today's Top 3 Priorities
+## 8. Today's Top 3 Priorities
 3 specific, actionable priorities for today. Reference actual numbers. If something is behind target — including content — name it and say what to do about it.{section7_fragment}"""
 
     resp = requests.post(
@@ -470,12 +555,30 @@ Flag if stories or posts are behind the daily target. Suggest what type of conte
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
+def sync_calendar_now():
+    try:
+        import subprocess
+        sync_script = Path(__file__).parent / 'sync' / 'google_calendar.py'
+        result = subprocess.run(
+            [sys.executable, str(sync_script)],
+            capture_output=True, text=True, timeout=30,
+        )
+        last_line = [l for l in result.stdout.strip().splitlines() if l.strip()]
+        print(f'  Calendar sync: {last_line[-1] if last_line else "done"}')
+    except Exception as e:
+        print(f'  Calendar sync skipped: {e}')
+
+
 def run_morning():
     print(f'\nGenerating Daily Brief for {TODAY}...')
+
+    print('  Syncing Google Calendar...')
+    sync_calendar_now()
 
     print('  Pulling GHL pipeline...')
     pipelines = get_pipeline()
     closed_deals = get_closed_deals()
+    hot_sellers = get_hot_sellers()
 
     print('  Pulling KPIs...')
     yesterday_kpis = get_yesterday_kpis()
@@ -513,14 +616,15 @@ def run_morning():
         print(f'  Decision Engine pre-brief skipped: {e}')
 
     print('  Generating brief with Claude Opus...')
-    pipeline_text  = format_pipeline(pipelines, closed_deals)
-    kpi_text       = format_kpis(yesterday_kpis, mtd_kpis)
-    weekly_text    = format_weekly_progress(wtd_kpis, weekly_targets)
-    bclub_text     = format_bclub(bclub)
-    calendar_text  = format_calendar(today_events, upcoming_events)
-    content_text   = format_content(mtd_kpis, wtd_kpis)
+    pipeline_text     = format_pipeline(pipelines, closed_deals)
+    kpi_text          = format_kpis(yesterday_kpis, mtd_kpis)
+    weekly_text       = format_weekly_progress(wtd_kpis, weekly_targets)
+    bclub_text        = format_bclub(bclub)
+    calendar_text     = format_calendar(today_events, upcoming_events)
+    content_text      = format_content(mtd_kpis, wtd_kpis)
+    hot_sellers_text  = format_hot_sellers(hot_sellers)
 
-    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text, calendar_text, content_text, section7_fragment)
+    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text, calendar_text, content_text, hot_sellers_text, section7_fragment)
 
     # Decision Engine post-process
     if pre_brief is not None:

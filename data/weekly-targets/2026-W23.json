@@ -1,0 +1,33 @@
+{
+  "week": "2026-W23",
+  "week_start": "2026-06-01",
+  "week_end": "2026-06-05",
+  "generated_on": "2026-06-01",
+  "seller": {
+    "contacts": 60,
+    "appts_set": 3,
+    "appts_met": 2,
+    "listings": 1,
+    "closings": 1
+  },
+  "buyer": {
+    "appts_set": 1,
+    "appts_met": 1,
+    "contracts_signed": 0
+  },
+  "agent": {
+    "contacts": 25,
+    "discoveries_set": 3,
+    "discoveries_met": 2,
+    "3ways_set": 1,
+    "3ways_met": 1,
+    "verbals": 1,
+    "onboarded": 0
+  },
+  "content": {
+    "stories": 5,
+    "posts_reels": 2,
+    "youtube": 1
+  },
+  "focus_note": "Month 1 of 10-deal goal (June–August). Weekly non-negotiables: 60+ contacts, 3 appts set, confirm every appt 24h before, 1 piece of content posted. Circle prospect both May closings (Hunt Lake + Coppersmith) this week."
+}
