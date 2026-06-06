@@ -1,0 +1,17 @@
+{
+  "agent_id": "your_unique_id",
+  "agent_name": "Your Full Name",
+  "recruiter_names": ["Michelle Wilson", "Chad Cooley"],
+  "my_emails": ["your@email.com", "your@brokerage.com"],
+  "internal_emails": ["assistant@email.com"],
+  "ghl_api_key": "your_ghl_api_key_here",
+  "ghl_location_id": "your_ghl_location_id_here",
+  "ghl_tags": ["agent", "agentnewsletter"],
+  "notification_telegram_chat_id": null,
+  "notification_email": "your@email.com",
+  "reengage_threshold_days": 60,
+  "anthropic_api_key": "sk-ant-...",
+  "groq_api_key": "gsk_...",
+  "supabase_url": "https://xxxx.supabase.co",
+  "supabase_service_role_key": "eyJ..."
+}

@@ -240,6 +240,97 @@ def get_weekly_targets() -> Optional[dict]:
     return None
 
 
+def get_lead_followup_status() -> dict:
+    """Read lead follow-up state: pending note approvals + recent outbound activity."""
+    result = {
+        'pending_approvals': [],   # leads who replied, notes waiting in Telegram
+        'texted_recently': [],     # leads texted in last 7 days
+        'total_in_repingqueue': 0, # leads being tracked for 60-day re-pings
+    }
+
+    # Pending Telegram approvals from Supabase
+    try:
+        rows = sb_get('pending_notes', {
+            'select': 'contact_name,interest_level,next_step,created_at',
+            'status': 'eq.pending',
+            'order':  'created_at.desc',
+        })
+        result['pending_approvals'] = rows
+    except Exception:
+        pass
+
+    # Recent outbound texts from Supabase (durable record)
+    try:
+        cutoff_7d  = (datetime.now() - timedelta(days=7)).isoformat()
+        cutoff_60d = (datetime.now() - timedelta(days=60)).isoformat()
+        recent_rows = sb_get('outbound_sms_log', {
+            'select': 'contact_name,sent_at,priority',
+            'sent_at': f'gte.{cutoff_7d}',
+            'order': 'sent_at.desc',
+        })
+        result['texted_recently'] = recent_rows
+        queue_rows = sb_get('outbound_sms_log', {
+            'select': 'contact_id',
+            'sent_at': f'gte.{cutoff_60d}',
+        })
+        # Unique contacts in the 60-day window = active re-ping queue size
+        result['total_in_repingqueue'] = len({r['contact_id'] for r in queue_rows})
+    except Exception:
+        # Fall back to local state file if Supabase table doesn't exist yet
+        try:
+            state_file = Path(__file__).parents[1] / 'data/sync-state/lead_followup.json'
+            if state_file.exists():
+                state = json.loads(state_file.read_text())
+                outbound = state.get('outbound_sent', {})
+                cutoff_7d_s  = (datetime.now() - timedelta(days=7)).isoformat()
+                cutoff_60d_s = (datetime.now() - timedelta(days=60)).isoformat()
+                for contact_id, sent_at in outbound.items():
+                    if sent_at > cutoff_7d_s:
+                        result['texted_recently'].append({'contact_id': contact_id, 'sent_at': sent_at})
+                    if sent_at > cutoff_60d_s:
+                        result['total_in_repingqueue'] += 1
+        except Exception:
+            pass
+
+    return result
+
+
+def format_lead_followup(status: dict) -> str:
+    lines = []
+
+    pending = status.get('pending_approvals', [])
+    if pending:
+        lines.append(f'**{len(pending)} Lead Repl{"ies" if len(pending) != 1 else "y"} Waiting for Note Approval in Telegram**')
+        for p in pending[:5]:
+            name     = p.get('contact_name') or 'Unknown'
+            interest = (p.get('interest_level') or 'unknown').upper()
+            step     = p.get('next_step') or ''
+            emoji    = {'HOT': '🔥', 'WARM': '🟡', 'COLD': '❄️'}.get(interest, '⚪')
+            lines.append(f'  {emoji} {name} — {interest}  |  Next: {step}')
+        if len(pending) > 5:
+            lines.append(f'  ...and {len(pending) - 5} more in Telegram')
+    else:
+        lines.append('**No pending note approvals** — inbox clear')
+
+    recent = status.get('texted_recently', [])
+    if recent:
+        lines.append(f'\n**Texted in Last 7 Days:** {len(recent)} lead{"s" if len(recent) != 1 else ""}')
+        for r in recent[:5]:
+            name     = r.get('contact_name') or r.get('contact_id', '')
+            sent     = (r.get('sent_at') or '')[:10]
+            priority = (r.get('priority') or '').upper()
+            lines.append(f'  • {name}  (sent {sent}, {priority} priority)')
+
+    in_queue = status.get('total_in_repingqueue', 0)
+    if in_queue:
+        lines.append(f'**Re-Ping Queue (60-day cycle):** {in_queue} lead{"s" if in_queue != 1 else ""} being tracked')
+
+    if not any([pending, recent, in_queue]):
+        lines.append('Lead follow-up system active — no recent activity to report')
+
+    return '\n'.join(lines)
+
+
 # ── Ratio helpers ─────────────────────────────────────────────────────────────
 def ratio(num: int, den: int) -> str:
     if num == 0 or den == 0:
@@ -471,7 +562,8 @@ def format_bclub(session: Optional[dict]) -> str:
 # ── Generate brief with Claude ────────────────────────────────────────────────
 def generate_brief(pipeline_text: str, kpi_text: str, weekly_text: str, bclub_text: str,
                    calendar_text: str = '', content_text: str = '',
-                   hot_sellers_text: str = '', section7_fragment: str = '') -> str:
+                   hot_sellers_text: str = '', section7_fragment: str = '',
+                   lead_followup_text: str = '') -> str:
     system = """You are the AI OS for Ashley Diep, a real estate agent and entrepreneur in Houston.
 
 Ashley runs three businesses:
@@ -527,12 +619,17 @@ Keep it tight — one line per block.
 
 For each person: note how long since last contact, what their next step should be, and flag anyone overdue for a follow-up (no activity in 7+ days). Keep it tight — one action per person.
 
-## 7. Content & Brand
+## 7. Lead Follow-Up AI
+{lead_followup_text}
+
+If there are pending Telegram note approvals — flag it as the first thing to do before calling. If any replied lead is marked HOT, call them today. Note how many leads are in the 60-day re-ping queue.
+
+## 8. Content & Brand
 {content_text}
 
 Flag if stories or posts are behind the daily target. Suggest what type of content to post today based on Ashley's priorities (seller leads, agent recruiting, High Key Solutions brand).
 
-## 8. Today's Top 3 Priorities
+## 9. Today's Top 3 Priorities
 3 specific, actionable priorities for today. Reference actual numbers. If something is behind target — including content — name it and say what to do about it.{section7_fragment}"""
 
     resp = requests.post(
@@ -593,6 +690,9 @@ def run_morning():
     print('  Pulling latest Breakfast Club session...')
     bclub = get_latest_bclub()
 
+    print('  Pulling lead follow-up status...')
+    lead_followup_status = get_lead_followup_status()
+
     print('  Pulling calendar...')
     today_events = get_todays_events()
     upcoming_events = get_upcoming_events(days=3)
@@ -616,15 +716,16 @@ def run_morning():
         print(f'  Decision Engine pre-brief skipped: {e}')
 
     print('  Generating brief with Claude Opus...')
-    pipeline_text     = format_pipeline(pipelines, closed_deals)
-    kpi_text          = format_kpis(yesterday_kpis, mtd_kpis)
-    weekly_text       = format_weekly_progress(wtd_kpis, weekly_targets)
-    bclub_text        = format_bclub(bclub)
-    calendar_text     = format_calendar(today_events, upcoming_events)
-    content_text      = format_content(mtd_kpis, wtd_kpis)
-    hot_sellers_text  = format_hot_sellers(hot_sellers)
+    pipeline_text      = format_pipeline(pipelines, closed_deals)
+    kpi_text           = format_kpis(yesterday_kpis, mtd_kpis)
+    weekly_text        = format_weekly_progress(wtd_kpis, weekly_targets)
+    bclub_text         = format_bclub(bclub)
+    calendar_text      = format_calendar(today_events, upcoming_events)
+    content_text       = format_content(mtd_kpis, wtd_kpis)
+    hot_sellers_text   = format_hot_sellers(hot_sellers)
+    lead_followup_text = format_lead_followup(lead_followup_status)
 
-    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text, calendar_text, content_text, hot_sellers_text, section7_fragment)
+    brief = generate_brief(pipeline_text, kpi_text, weekly_text, bclub_text, calendar_text, content_text, hot_sellers_text, section7_fragment, lead_followup_text)
 
     # Decision Engine post-process
     if pre_brief is not None:

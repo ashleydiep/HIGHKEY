@@ -41,6 +41,13 @@
         "PATH": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin:/usr/local/bin:/usr/bin:/bin"
       }
     },
+    "agencyosx": {
+      "type": "http",
+      "url": "https://app.agencyosx.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${AGENCYOSX_API_TOKEN}"
+      }
+    },
     "supabase": {
       "type": "stdio",
       "command": "/Users/ashleydiep/.nvm/versions/node/v24.15.0/bin/npx",

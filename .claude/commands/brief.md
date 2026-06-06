@@ -8,7 +8,11 @@ Runs `scripts/daily_brief.py` which pulls:
 - GHL open opportunities by pipeline and stage
 - Yesterday's KPI numbers from `daily_kpis`
 - MTD totals and key ratios
+- Hot seller radar (priority stages + hot-30 tagged contacts)
 - Latest Breakfast Club session takeaways
+- **Lead Follow-Up AI status** — pending Telegram note approvals, leads texted in last 7 days, re-ping queue size
+- Google Calendar (today + next 3 days)
+- Content tracking (stories, posts, YouTube vs daily targets)
 
 Then generates a structured brief with Claude Opus and saves it to `outputs/briefs/YYYY-MM-DD.md`.
 

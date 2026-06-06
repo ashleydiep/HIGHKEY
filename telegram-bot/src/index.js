@@ -1,7 +1,9 @@
 /**
- * ProAgent AI OS — Telegram Bot (Cloudflare Worker)
- * Receives Telegram messages → calls Claude with tool use → replies
- * Tools: save_daily_kpis (writes to Supabase)
+ * ProAgent AI OS — Cloudflare Worker
+ *
+ * Routes:
+ *   POST /           → Telegram bot (KPI logging, decisions, Claude Q&A)
+ *   POST /fireflies  → Fireflies.ai webhook (transcription done → update GHL + notify Ashley)
  */
 
 const SYSTEM_PROMPT = `You are the AI OS for Ashley Diep, a real estate agent and entrepreneur in Houston.
@@ -262,16 +264,300 @@ function handleCommands(text, chatId) {
   return null;
 }
 
+// ── Fireflies webhook ─────────────────────────────────────────────────────────
+
+async function getAgentConfig(agentId, env) {
+  const rows = await sbGet(
+    env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY,
+    `agents?agent_id=eq.${encodeURIComponent(agentId)}&active=eq.true&limit=1`,
+  );
+  return rows[0] || null;
+}
+
+function buildTitleRegex(recruiterNames) {
+  const pattern = recruiterNames
+    .map(name => name.trim().split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+'))
+    .join('|');
+  return new RegExp(`^(.+?)\\s+(?:&|and)\\s+(${pattern})\\s*$`, 'i');
+}
+
+async function handleFireflies(request, env, agentId) {
+  // Load agent config from Supabase
+  const agent = await getAgentConfig(agentId, env);
+  if (!agent) {
+    console.warn(`Fireflies: unknown agent_id "${agentId}"`);
+    return new Response(`Unknown agent: ${agentId}`, { status: 404 });
+  }
+
+  const AGENT_INTERNAL_EMAILS = new Set([
+    ...(agent.my_emails || []),
+    ...(agent.internal_emails || []),
+  ].map(e => e.toLowerCase()));
+
+  const RECRUITER_NAMES = agent.recruiter_names || ['Michelle Wilson', 'Chad Cooley'];
+  const TITLE_RE = buildTitleRegex(RECRUITER_NAMES);
+  const AGENT_GHL_KEY = agent.ghl_api_key;
+  const AGENT_LOCATION = agent.ghl_location_id;
+  const AGENT_CHAT_ID = agent.notification_telegram_chat_id;
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return new Response('Bad JSON', { status: 400 });
+  }
+
+  const title = payload.title || payload.meeting_name || '';
+  const dateRaw = payload.date || payload.start_time || '';
+  const meetingDate = dateRaw ? new Date(dateRaw).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+
+  // Only process qualifying recruiter events
+  if (!TITLE_RE.test(title)) {
+    console.log(`Fireflies [${agentId}]: skipping "${title}"`);
+    return new Response('OK', { status: 200 });
+  }
+
+  // Build note content from Fireflies summary
+  const summary = payload.summary || {};
+  const overview = summary.overview || summary.short_summary || payload.short_summary || '';
+  const actionItems = summary.action_items || payload.action_items || [];
+  const keywords = summary.keywords || [];
+
+  const actionLines = Array.isArray(actionItems) && actionItems.length
+    ? actionItems.map(a => `☐ ${typeof a === 'string' ? a : a.text || JSON.stringify(a)}`).join('\n')
+    : '(none)';
+
+  const noteBody = [
+    `=== Meeting Notes: ${meetingDate} ===`,
+    '',
+    overview,
+    '',
+    'ACTION ITEMS',
+    actionLines,
+    keywords.length ? `\nKey Topics: ${keywords.slice(0, 8).join(', ')}` : '',
+    '',
+    `Transcript: ${payload.transcript_url || payload.video_url || '(see Fireflies)'}`,
+  ].filter(l => l !== null).join('\n').trim();
+
+  // ── Find GHL contact (3 layers) ──────────────────────────────────────────
+
+  let ghlContactId = null;
+  let contactName = '';
+
+  // Layer 3: Supabase mapping (most reliable — set by calendar_to_ghl.py)
+  const mapRows = await sbGet(
+    env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY,
+    `meeting_contact_map?meeting_title=eq.${encodeURIComponent(title)}&select=ghl_contact_id,ghl_contact_name&limit=1`,
+  );
+  if (mapRows.length) {
+    ghlContactId = mapRows[0].ghl_contact_id;
+    contactName = mapRows[0].ghl_contact_name || '';
+    console.log(`Fireflies [${agentId}]: found via mapping — ${contactName}`);
+  }
+
+  // Layer 1: Attendee email match
+  if (!ghlContactId) {
+    const attendees = payload.attendees || payload.participants || [];
+    const prospectEmails = attendees
+      .map(a => (typeof a === 'string' ? a : a.email || '').toLowerCase())
+      .filter(e => e && !AGENT_INTERNAL_EMAILS.has(e));
+
+    for (const email of prospectEmails) {
+      const result = await ghlSearchByEmailForAgent(email, AGENT_GHL_KEY, AGENT_LOCATION);
+      if (result) {
+        ghlContactId = result.id;
+        contactName = result.contactName || result.firstName || email;
+        break;
+      }
+    }
+  }
+
+  // Layer 2: Title name search
+  if (!ghlContactId) {
+    const match = title.match(TITLE_RE);
+    if (match) {
+      const prospectName = match[1].trim();
+      const result = await ghlSearchByNameForAgent(prospectName, AGENT_GHL_KEY, AGENT_LOCATION);
+      if (result) {
+        ghlContactId = result.id;
+        contactName = result.contactName || result.firstName || prospectName;
+      }
+    }
+  }
+
+  // ── Post note to GHL ─────────────────────────────────────────────────────
+
+  let ghlUpdated = false;
+  if (ghlContactId) {
+    try {
+      await ghlAddNoteForAgent(ghlContactId, noteBody, AGENT_GHL_KEY);
+      ghlUpdated = true;
+    } catch (err) {
+      console.error(`Fireflies [${agentId}]: GHL note failed — ${err.message}`);
+    }
+  }
+
+  // ── Notify agent via Telegram ─────────────────────────────────────────────
+
+  const statusLine = ghlUpdated
+    ? `✅ GHL updated for *${contactName}*`
+    : `⚠️ Could not find GHL contact for "${title}"`;
+
+  const tgMsg = [
+    `🎙 *Meeting Transcribed*`,
+    `📅 ${meetingDate} | ${title}`,
+    statusLine,
+    '',
+    overview ? `*Overview:*\n${overview.slice(0, 400)}${overview.length > 400 ? '...' : ''}` : '',
+    actionItems.length ? `\n*Action Items:*\n${actionLines}` : '',
+  ].filter(Boolean).join('\n');
+
+  if (AGENT_CHAT_ID) {
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, AGENT_CHAT_ID, tgMsg);
+  }
+
+  return new Response('OK', { status: 200 });
+}
+
+// ── GHL helpers (per-agent credentials) ──────────────────────────────────────
+
+async function ghlSearchByEmailForAgent(email, apiKey, locationId) {
+  const resp = await fetch(
+    `https://rest.gohighlevel.com/v1/contacts/?query=${encodeURIComponent(email)}&locationId=${locationId}`,
+    { headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' } },
+  );
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  return (data.contacts || []).find(c => (c.email || '').toLowerCase() === email.toLowerCase()) || null;
+}
+
+async function ghlSearchByNameForAgent(name, apiKey, locationId) {
+  const resp = await fetch(
+    `https://rest.gohighlevel.com/v1/contacts/?query=${encodeURIComponent(name)}&locationId=${locationId}`,
+    { headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' } },
+  );
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  return (data.contacts || [])[0] || null;
+}
+
+async function ghlAddNoteForAgent(contactId, body, apiKey) {
+  const resp = await fetch(
+    `https://rest.gohighlevel.com/v1/contacts/${contactId}/notes/`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body }),
+    },
+  );
+  if (!resp.ok) throw new Error(`GHL ${resp.status}: ${await resp.text()}`);
+}
+
+// ── Pending note approvals (inbound lead replies) ─────────────────────────────
+
+async function answerCallbackQuery(botToken, callbackQueryId, text) {
+  await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ callback_query_id: callbackQueryId, text, show_alert: false }),
+  });
+}
+
+async function editMessageReplyMarkup(botToken, chatId, messageId, replyMarkup) {
+  await fetch(`https://api.telegram.org/bot${botToken}/editMessageReplyMarkup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, message_id: messageId, reply_markup: replyMarkup }),
+  });
+}
+
+async function ghlAddNote(contactId, noteBody, ghlApiKey) {
+  const resp = await fetch(
+    `https://rest.gohighlevel.com/v1/contacts/${contactId}/notes/`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${ghlApiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: noteBody }),
+    },
+  );
+  if (!resp.ok) throw new Error(`GHL ${resp.status}: ${await resp.text()}`);
+}
+
+async function handleNoteCallback(env, callbackQuery) {
+  const data     = callbackQuery.data || '';
+  const chatId   = callbackQuery.message?.chat?.id;
+  const msgId    = callbackQuery.message?.message_id;
+  const queryId  = callbackQuery.id;
+
+  if (!ALLOWED_CHAT_IDS.has(chatId)) return;
+
+  const [action, pendingId] = data.split(':');
+  if (!pendingId) return;
+
+  // Fetch the pending note from Supabase
+  const rows = await sbGet(
+    env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY,
+    `pending_notes?id=eq.${pendingId}&status=eq.pending&limit=1`,
+  );
+
+  if (!rows.length) {
+    await answerCallbackQuery(env.TELEGRAM_BOT_TOKEN, queryId, 'Already actioned or not found.');
+    return;
+  }
+
+  const note = rows[0];
+
+  if (action === 'approve_note') {
+    try {
+      await ghlAddNote(note.contact_id, note.note_body, env.GHL_PROAGENT_API_KEY);
+      await sbPatch(
+        env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY,
+        `pending_notes?id=eq.${pendingId}`,
+        { status: 'approved', resolved_at: new Date().toISOString() },
+      );
+      await answerCallbackQuery(env.TELEGRAM_BOT_TOKEN, queryId, '✅ Note added to GHL!');
+      // Remove the inline keyboard to prevent double-taps
+      await editMessageReplyMarkup(env.TELEGRAM_BOT_TOKEN, chatId, msgId, JSON.stringify({ inline_keyboard: [] }));
+      await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, `✅ Note added to *${note.contact_name}*'s GHL record.`);
+    } catch (err) {
+      await answerCallbackQuery(env.TELEGRAM_BOT_TOKEN, queryId, '❌ GHL update failed — try again.');
+      console.error('approve_note error:', err);
+    }
+  } else if (action === 'skip_note') {
+    await sbPatch(
+      env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY,
+      `pending_notes?id=eq.${pendingId}`,
+      { status: 'skipped', resolved_at: new Date().toISOString() },
+    );
+    await answerCallbackQuery(env.TELEGRAM_BOT_TOKEN, queryId, 'Skipped.');
+    await editMessageReplyMarkup(env.TELEGRAM_BOT_TOKEN, chatId, msgId, JSON.stringify({ inline_keyboard: [] }));
+  }
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+
+    // Fireflies webhook route — /fireflies/{agent_id}
+    if (request.method === 'POST' && url.pathname.startsWith('/fireflies/')) {
+      const agentId = url.pathname.split('/')[2];
+      if (!agentId) return new Response('Missing agent_id', { status: 400 });
+      return handleFireflies(request, env, agentId);
+    }
+
     if (request.method !== 'POST') {
-      return new Response('ProAgent Telegram Bot is running.', { status: 200 });
+      return new Response('ProAgent AI OS is running.', { status: 200 });
     }
 
     let update;
     try { update = await request.json(); }
     catch { return new Response('Bad request', { status: 400 }); }
+
+    // Handle inline keyboard button taps (approve/skip note)
+    if (update?.callback_query) {
+      await handleNoteCallback(env, update.callback_query);
+      return new Response('OK', { status: 200 });
+    }
 
     const message = update?.message;
     if (!message?.text) return new Response('OK', { status: 200 });
