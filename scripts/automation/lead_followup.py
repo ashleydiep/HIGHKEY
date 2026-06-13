@@ -310,6 +310,36 @@ def send_ghl_sms(contact_id: str, message: str) -> bool:
         return False
 
 
+def next_friday_iso() -> str:
+    """Return the upcoming Friday (or today if today is Friday) at 9am CT as ISO8601 UTC."""
+    today = datetime.now(timezone.utc)
+    days_ahead = (4 - today.weekday()) % 7  # 4 = Friday
+    if days_ahead == 0:
+        days_ahead = 7  # already Friday → next Friday
+    friday = today + timedelta(days=days_ahead)
+    # 9am CT = 14:00 UTC (CST) / 15:00 UTC (CDT) — use 14:00 as safe default
+    friday_9am = friday.replace(hour=14, minute=0, second=0, microsecond=0)
+    return friday_9am.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+def create_ghl_call_task(contact_id: str, contact_name: str, text_sent: str) -> bool:
+    """Create a follow-up call task in GHL due the upcoming Friday at 9am."""
+    due = next_friday_iso()
+    first_name = (contact_name or 'Lead').split()[0]
+    try:
+        ghl_post(f'/contacts/{contact_id}/tasks/', {
+            'title':       f'Call {first_name} — follow up on text sent today',
+            'dueDate':     due,
+            'completed':   False,
+            'description': f'Auto-text sent: "{text_sent[:120]}..." — call to follow up if no reply.',
+        })
+        print(f'  [task] Call task created for {contact_name} due Friday')
+        return True
+    except Exception as e:
+        print(f'  [!] GHL task creation failed (non-fatal): {e}')
+        return False
+
+
 def format_outbound_sent_log(opp: dict, draft: dict) -> str:
     name     = opp.get('contact_name') or 'Unknown'
     phone    = opp.get('contact_phone') or '—'
@@ -425,6 +455,9 @@ def run_outbound(days: int, limit: int, dry_run: bool):
         success = send_ghl_sms(contact_id, draft['message'])
         if not success:
             continue
+
+        # Create a call task due the upcoming Friday
+        create_ghl_call_task(contact_id, opp.get('contact_name', ''), draft['message'])
 
         sent_ts = datetime.now(timezone.utc).isoformat()
 
@@ -774,8 +807,8 @@ def main():
         description='Lead follow-up AI — auto-send outbound texts + capture inbound replies'
     )
     parser.add_argument('--mode', choices=['outbound', 'inbound', 'both'], default='both')
-    parser.add_argument('--days', type=int, default=180,
-                        help='Outbound: leads quiet this many days (default: 180)')
+    parser.add_argument('--days', type=int, default=120,
+                        help='Outbound: leads quiet this many days (default: 120)')
     parser.add_argument('--limit', type=int, default=10,
                         help='Outbound: max contacts per run (default: 10)')
     parser.add_argument('--dry-run', action='store_true',

@@ -313,6 +313,31 @@ These operational processes support the strategic priorities of new business acq
 - Bi-weekly calls
 - At least once-a-week check-in
 
+**YouTube Content Strategy:**
+
+Goal: Attract seller leads organically by positioning as the go-to Houston agent — not through personality alone, but by answering the questions sellers are already searching.
+
+Core insight: Sellers aren't shopping for a personality. They're anxious about price, timing, and not getting screwed. Content that answers their real questions converts far better than day-in-the-life alone.
+
+Posting cadence:
+- 1 long-form video per week (YouTube is a search engine — titles and thumbnails people actually search matter more than daily posting)
+- 2-3 Shorts per week to stay in the feed between long-forms
+
+Content pillars in order of conversion priority:
+1. Market commentary — "Is now a good time to sell?" — generates ~5x more seller DMs than listing showcases
+2. Case studies — "I sold this home for $X over asking. Here's exactly what we did." — answers the seller's #1 question
+3. Mistake-driven — "5 mistakes sellers make that cost them thousands" — sellers self-diagnose and reach out
+4. Educational/evergreen — "Home selling timeline: listing to closing" — pulls in sellers planning months ahead
+
+Repurposing (one filming session → multiple assets):
+- Film 1 long-form anchor video
+- Cut 3 Shorts from it within 48 hours of posting: best single tip / result reveal / emotional moment
+- Use CapCut for vertical cuts + on-screen captions
+
+Batch filming: Film multiple videos in 1-2 sittings, change outfits between videos, stagger one per week.
+
+CTA: Free home valuation / "what's my home worth" — converts seller-intent viewers far better than "DM me"
+
 **YouTube Lead Handling:**
 - Double-dial for first 7 days until they pick up
 - Book home evaluation survey/in-person consultation
