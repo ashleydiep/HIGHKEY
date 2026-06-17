@@ -12,6 +12,7 @@ Usage:
   python3 reengage.py --dry-run      # print drafts, don't send Telegram
 """
 import json
+import re
 import argparse
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -19,6 +20,37 @@ from pathlib import Path
 import requests
 import anthropic
 from agent_config import load_config
+
+EXCLUDED_TAGS = {'dead', 'listed', 'pastclient', 'buyer', 'socialmedia', 'agent'}
+
+NOISE_PATTERNS = re.compile(
+    r'^\s*(opened email campaign|email opened|sent a? ?text( message)?|'
+    r'text sent|na|n/?a|no answer|no ans\.?|vm|voicemail|left vm|left voicemail|'
+    r'system added note:)\s*$',
+    re.IGNORECASE,
+)
+
+
+def strip_html(text: str) -> str:
+    return re.sub(r'<[^>]+>', ' ', text).strip()
+
+
+def is_meaningful_note(body: str) -> bool:
+    """Return True if the note contains real conversation content."""
+    if not body:
+        return False
+    clean = strip_html(body).strip()
+    if len(clean) < 15:
+        return False
+    if NOISE_PATTERNS.match(clean):
+        return False
+    if clean.lower().startswith('system added note:'):
+        return False
+    return True
+
+
+def has_excluded_tag(tags: list) -> bool:
+    return bool(EXCLUDED_TAGS & {t.lower() for t in (tags or [])})
 
 CFG = load_config()
 
@@ -42,10 +74,8 @@ SB_HEADERS = {
 # ─── Supabase queries ─────────────────────────────────────────────────────────
 
 def get_cold_contacts(days_threshold: int, limit: int) -> list:
-    """Fetch GHL contacts not updated in the past N days from Supabase."""
+    """Fetch cold contacts, pull a larger pool so tag/note filters still hit the limit."""
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days_threshold)).isoformat()
-
-    # Use date_updated from ghl_contacts
     resp = requests.get(
         f'{SUPABASE_URL}/rest/v1/ghl_contacts',
         headers=SB_HEADERS,
@@ -53,7 +83,7 @@ def get_cold_contacts(days_threshold: int, limit: int) -> list:
             'select': 'source_id,full_name,first_name,last_name,email,phone,date_updated,tags',
             'date_updated': f'lt.{cutoff}',
             'order': 'date_updated.asc',
-            'limit': str(limit),
+            'limit': str(limit * 10),
         },
         timeout=20,
     )
@@ -114,26 +144,33 @@ def draft_reengage_message(contact: dict, notes: list) -> dict:
     else:
         notes_text = '(No notes on file)'
 
-    prompt = f"""You are Ashley Diep's AI assistant. Ashley is a real estate agent and recruiter in Houston.
+    prompt = f"""You are Ashley Diep's AI assistant. Ashley is a real estate agent in Houston reconnecting with a past contact.
 
-Ashley needs to re-engage with {name}. Last contact: {last_updated or 'unknown'}.
+Contact: {name}
+Last touched: {last_updated or 'unknown'}
 
-Contact notes:
+Notes from prior conversation:
 {notes_text}
 
-Based on these notes, draft a short, genuine re-engagement message Ashley could send.
-- Tone: warm, personal, not salesy. Reference something specific from the notes if possible.
-- Length: 3-5 sentences max — something she'd actually text or DM.
-- Goal: restart the relationship and check in, not pitch immediately.
-- Ashley's voice: direct, friendly, real estate/recruiting focus.
+Draft a short re-engagement text Ashley can send from her phone.
 
-Also suggest the best channel (text/DM/call) and timing.
+Rules:
+- Open with their WHY — the personal life reason behind their situation (divorce, growing family, retirement, financial pressure, visa, military move, moving abroad, etc.). Lead with empathy for their situation, not the transaction.
+- Never open with real estate talk. The personal hook comes first.
+- You CAN mention the market — but only as a supporting detail or incentive after the personal hook, not as the opener.
+- Banned openers and phrases: "just checking in on your real estate", "are you still looking to sell", "interviewing agents", "I wanted to follow up on your home".
+- Sound like a friend who genuinely remembered something specific about them.
+- Tone: warm, casual, conversational. Like a real text — not a newsletter.
+- Length: 2-3 sentences max. Short wins.
+- If there's a specific life detail in the notes (visa situation, divorce, hard money loan, military schedule, retirement plan, moving abroad), anchor the message to THAT first.
+
+Also suggest the best channel and urgency.
 
 Return JSON:
 {{
   "message": "the drafted message",
   "channel": "text|DM|call|email",
-  "reasoning": "why this message and channel based on the notes",
+  "reasoning": "what life motivation you anchored to and why",
   "urgency": "low|medium|high"
 }}"""
 
@@ -193,44 +230,56 @@ def main():
     print(f'  Threshold : {args.days} days without contact')
     print(f'  Limit     : {args.limit} contacts\n')
 
-    contacts = get_cold_contacts(args.days, args.limit)
+    all_contacts = get_cold_contacts(args.days, args.limit)
 
-    if not contacts:
-        print(f'No contacts found untouched for {args.days}+ days. Great job staying in touch!')
-        if not args.dry_run:
-            send_telegram(
-                f'✅ *Re-engagement Check*\n'
-                f'No contacts have gone cold ({args.days}+ days without touch). Nice work!'
-            )
+    if not all_contacts:
+        print(f'No contacts found untouched for {args.days}+ days.')
         return
 
-    print(f'Found {len(contacts)} cold contacts\n')
+    print(f'Pool: {len(all_contacts)} cold contacts — filtering by tags and notes...\n')
 
-    # Send a header message
     if not args.dry_run:
         send_telegram(
             f'🔄 *Re-engagement Report*\n'
-            f'{len(contacts)} contacts untouched for {args.days}+ days. Drafts incoming...'
+            f'Scanning {len(all_contacts)} cold contacts ({args.days}d threshold)...'
         )
 
     processed = 0
-    for contact in contacts:
+    skipped_tags = 0
+    skipped_notes = 0
+
+    for contact in all_contacts:
+        if processed >= args.limit:
+            break
+
         name = contact.get('full_name') or contact.get('first_name') or 'Unknown'
         source_id = contact.get('source_id', '')
-        print(f'Processing: {name} (last: {contact.get("date_updated", "")[:10]})')
+
+        # Skip excluded tags
+        if has_excluded_tag(contact.get('tags')):
+            skipped_tags += 1
+            continue
 
         # Get notes — try live GHL first, fall back to Supabase
         notes = get_live_contact_notes(source_id)
         if not notes:
             notes = get_contact_notes(source_id)
 
+        # Filter to meaningful notes only
+        meaningful = [n for n in notes if is_meaningful_note(n.get('body', ''))]
+        if not meaningful:
+            skipped_notes += 1
+            continue
+
+        print(f'Processing: {name} (last: {contact.get("date_updated", "")[:10]}, {len(meaningful)} real note(s))')
+
         try:
-            draft = draft_reengage_message(contact, notes)
+            draft = draft_reengage_message(contact, meaningful)
         except Exception as e:
             print(f'  Warning: Claude error for {name} — {e}')
             continue
 
-        tg_msg = format_telegram_reengage(contact, draft, len(notes))
+        tg_msg = format_telegram_reengage(contact, draft, len(meaningful))
 
         if args.dry_run:
             print(f'\n--- {name} ---')
@@ -243,9 +292,11 @@ def main():
 
         processed += 1
 
-    print(f'\nDone. Processed {processed} cold contacts.')
+    print(f'\nDone. Processed {processed} contacts ({skipped_tags} skipped for tags, {skipped_notes} skipped — no real notes).')
     if not args.dry_run and processed > 0:
         send_telegram(f'✅ Re-engagement drafts complete ({processed} contacts). Review above and decide who to reach out to.')
+    if not args.dry_run and processed == 0:
+        send_telegram(f'🔍 Re-engagement scan complete — no qualifying contacts found ({args.days}d threshold, real notes required, excluded tags applied).')
 
 
 if __name__ == '__main__':
