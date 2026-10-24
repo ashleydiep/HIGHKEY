@@ -31,12 +31,12 @@ Start with whatever numbers you have. Even rough estimates are better than nothi
 
 | Metric | Current Value | Target | Trend | Notes |
 |--------|--------------|--------|-------|-------|
-| YTD net commission | $46,387 | | | As of 2026-05-08 |
-| YTD deals closed | 8 | | | 2 leases + 6 buyer/seller transactions |
+| YTD net commission | $46,387+ | | | As of 2026-05-08; +$5,300 (Jul 1) + 2 more closings Aug 2026 |
+| YTD deals closed | 11 | | | +16227 Affirmed Way (closed Aug 2026) +254 Coppersmith (closed Aug 2026) |
 | Deals closed per month | 1.5 | 2-3 | Growth | Target 2-3 by end of year |
 | Active listings | 2-4 | | Monthly | New listings per month |
 | Client churn rate | Low | | | Dependent on if listings fall through |
-| Current inventory | 6 land listings + 4 homes | | | Total 10 active listings |
+| Current inventory | 6 land listings + 8 homes | | | Total 14 active listings; +1 Jul 6, +1 Jul 7 (Katy), +1 Jul 9 (Andrew), +1 Jul 20 (Andrew) |
 | Listings under contract | 2 | | | Properties in escrow |
 | Buyer sales under contract | 3 | | | Buyer-side transactions in progress |
 

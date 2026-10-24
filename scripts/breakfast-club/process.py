@@ -272,12 +272,26 @@ Transcript:
     )
 
     text = message.content[0].text
-    # Extract JSON from response
     start = text.find("{")
     end = text.rfind("}") + 1
     if start == -1:
         raise ValueError("Claude didn't return JSON")
-    return json.loads(text[start:end])
+    raw = text[start:end]
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        # Retry with explicit JSON escaping instruction
+        print("  JSON parse failed, retrying with stricter prompt...")
+        retry_prompt = prompt + "\n\nIMPORTANT: Your response must be valid JSON. Escape all apostrophes and quotes inside string values with a backslash. Do not use smart quotes. Return ONLY the JSON object, nothing else."
+        msg2 = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1500,
+            messages=[{"role": "user", "content": retry_prompt}]
+        )
+        text2 = msg2.content[0].text
+        start2 = text2.find("{")
+        end2 = text2.rfind("}") + 1
+        return json.loads(text2[start2:end2])
 
 
 # ── Step 6: Embed ─────────────────────────────────────────────────────────────

@@ -571,7 +571,10 @@ Ashley runs three businesses:
 - COLLAB (agent recruitment into her brokerage, target 50 agents by end of 2026, currently at 16)
 - High Key Solutions (AI systems for real estate agents — pre-revenue)
 
-Daily schedule: 8–11am seller cold calling | 9:30–10am Breakfast Club | 11:30am–12pm agent recruiting calls
+Daily schedule (Mon–Thu): 7:30am ISA roleplay (30 min) | 8:00–11:00am seller cold calling | 11:00am Co-Lab call | 11:30–11:50am daily call review (Ashley + Josh) | 12:00–1:00pm agent recruiting calls
+Friday additions: 11:30am ISA 1:1 with Josh | 1:00–3:00pm content creation | 3:00–4:00pm weekly review
+Saturday: 10:00am–12:00pm batch content recording | 1:00–2:00pm strategy/brainstorm
+Ashley also has an ISA (Josh) — his numbers are tracked separately in isa_daily_kpis. Flag if Josh's appts are behind target (1/day minimum).
 Target: 2 seller appts/day set | ~25 contacts per appt | relationship-based agent recruiting
 
 Content goals (critical for brand and lead gen):
@@ -584,10 +587,10 @@ Write in a direct, no-fluff tone. Ashley is data-driven. Reference actual number
 
     friday_note = ""
     if TODAY.weekday() == 4:  # Friday
-        friday_note = "\n\nIMPORTANT: Today is Friday. Always block 11:00am–12:00pm for YouTube recording — this is a fixed weekly habit immediately after the calling block. List it explicitly in the schedule and include it as a priority."
+        friday_note = "\n\nIMPORTANT: Today is Friday. Fixed blocks: 11:30am ISA 1:1 with Josh (KPI review + call recording review + one skill drill), 1:00–3:00pm content creation and post scheduling, 3:00–4:00pm weekly review and planning for next week."
     saturday_note = ""
     if TODAY.weekday() == 5:  # Saturday
-        saturday_note = "\n\nIMPORTANT: Today is Saturday. Always block 9:00–10:00am for YouTube recording — this is a fixed weekly habit. List it explicitly in the schedule and include it as a priority."
+        saturday_note = "\n\nIMPORTANT: Today is Saturday. Fixed blocks: 10:00am–12:00pm batch content recording (film 4–6 pieces), 12:00–1:00pm edit and schedule posts, 1:00–2:00pm strategy and brainstorm session."
 
     user = f"""Generate Ashley's Daily Brief for {TODAY.strftime('%A, %B %d, %Y')}.{friday_note}{saturday_note}
 
@@ -606,9 +609,12 @@ Write in a direct, no-fluff tone. Ashley is data-driven. Reference actual number
 {calendar_text}
 
 Build a time-blocked schedule for today that incorporates the above calendar events AND Ashley's fixed routine:
-- 8:00–11:00am: seller cold calling (note what to focus on; Breakfast Club 9:30–10am runs during this block)
-- 11:30am–12:00pm: agent recruiting calls
-- Flag any calendar conflicts with the calling blocks
+- 7:30am: ISA roleplay with Josh (30 min — note what to drill based on yesterday's numbers)
+- 8:00–11:00am: seller cold calling (note what lists to hit)
+- 11:00am: Co-Lab call
+- 11:30–11:50am: daily call review (pull 1 of Ashley's calls + 1 of Josh's)
+- 12:00–1:00pm: agent recruiting calls
+- Any calendar events: slot them in and flag conflicts with the above blocks
 Keep it tight — one line per block.
 
 ## 5. Latest Breakfast Club

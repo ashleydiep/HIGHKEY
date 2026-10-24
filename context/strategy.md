@@ -51,34 +51,258 @@ Without clear strategy, the AI OS makes generic recommendations. With it, every 
 
 ## Current Focus Period
 
-[What timeframe does this strategy cover?]
+**Period:** October 20, 2026 – April 20, 2027 (6-Month Game Plan)
+**1-Year Target Date:** July 2027
 
-**Period:** [e.g., Q2 2026 / April-June 2026 / This quarter]
+---
 
-## Strategic Priorities
+## 6-Month Game Plan — Oct 20, 2026 → Apr 20, 2027
 
-[What are the 2-5 things you're focused on right now?]
+### End Goals
 
-1. **[Priority]** — [Why it matters right now]
-2. **[Priority]** — [Why it matters right now]
-3. **[Priority]** — [Why it matters right now]
+| Goal | Target |
+|------|--------|
+| ISA transactions | 1 close/month by Month 3, consistent by Month 6 |
+| Ashley transactions | 4/month (listings + buyers) |
+| Social media buyers | 1 buyer/month from content |
+| ISA system | Fully trained, independent, KPIs documented |
+| Social media system | Streamlined, repeatable process in place |
 
-## What Success Looks Like
+---
 
-[How will you know if this period was successful? What specific outcomes matter?]
+### The Math — Daily Activity Required
 
-- [e.g., MRR hits [target] by end of quarter]
-- [e.g., Team is fully hired and autonomous on client delivery]
-- [e.g., AI OS generating daily briefs with real data]
-- [e.g., Close rate improves from [X]% to [Y]%]
+| Person | Dials/Day | Live Contacts | Appts Set/Day | Appts Sat/Week |
+|--------|-----------|--------------|--------------|----------------|
+| ISA (ramping → full) | 75 → 150 | 8 → 15 | 0–1 → 2 | 0 → 5 |
+| Ashley | — | 30–40 | 2 | 2–3 |
+| **Combined** | | **40–55** | **3–4** | **7–8** |
 
-## Open Questions
+> To close 1 deal: need ~10 sat appointments → ~25 appts set → ~250 dials (ISA). Close cycle = 60–90 days from listing taken.
 
-[What strategic tensions or decisions are you actively working through?]
+---
 
-1. [e.g., Should we raise prices or focus on volume?]
-2. [e.g., Hire another account manager or invest in automation first?]
-3. [e.g., Expand to a new service offering or double down on the core?]
+### Monthly Milestones
+
+**Month 1 — Foundation (Oct 20 – Nov 20)**
+- ISA: script mastery, first 10 appointments booked
+- KPI tracking system live
+- Social media: 4 posts/week cadence starts
+- Ashley: 2 transactions
+
+**Month 2 — Build (Nov 21 – Dec 20)**
+- ISA: 100+ dials/day, 1 appt/day, first listings taken
+- Social: first buyer inquiry from content
+- Holiday agent recruitment push (COLLAB)
+- Ashley: 3 transactions
+
+**Month 3 — First Closes (Dec 21 – Jan 20)**
+- ISA: First transaction closes
+- Ashley: 4 transactions/month hit for first time
+- Social: 1 buyer from content
+- Combined target: 5 transactions in January
+
+**Month 4 — Consistency (Jan 21 – Feb 20)**
+- ISA: 1 close/month is the floor
+- KPI review: dial-to-appt, appt-to-listing, listing-to-close rates
+- Social content calendar finalized and running
+
+**Month 5 — Systemize (Feb 21 – Mar 20)**
+- ISA fully independent — no daily management needed
+- Social media SOP written and documented
+- Ashley: 4 transactions/month reliably
+
+**Month 6 — Scale Ready (Mar 21 – Apr 20)**
+- All systems run without daily oversight
+- Decision point: Add second ISA? Expand markets?
+- Full operating playbook documented
+
+---
+
+### What to Track Every Week
+
+**ISA:**
+- Dials | Live contacts | Appts set | Appts sat | Listings taken | Lead source
+
+**Ashley:**
+- Contacts | Appts set | Appts sat | Listings taken | Buyers in pipeline | Closings
+
+**Social Media:**
+- Posts published | DMs received | Buyer leads | Follower count
+
+**Pipeline (monthly):**
+- Active listings | Contracts pending | Closings | GCI | Lead source per closing
+
+---
+
+### By End of Year (Dec 31, 2026)
+
+| Metric | Target |
+|--------|--------|
+| ISA dials/day | 100+ |
+| ISA appts/week | 5+ |
+| ISA listings in pipeline | 3–5 |
+| Ashley closings (Nov–Dec) | 4–6 total |
+| Social media posts | 30+ published |
+| Newsletter | Weekly cadence running |
+| KPI dashboard | Live and updated daily |
+
+---
+
+---
+
+## 1-Year Goals (by July 2027)
+
+| Goal | Target | Current |
+|------|--------|---------|
+| Monthly revenue | $30k/month (3+ months consistently) | — |
+| Deals closed/month | 2.5 | ~1.5 |
+| Revshare monthly | $10k/month | — |
+| Producing agents | 100 | 16 |
+
+**How we get there — non-negotiables:**
+- No open houses done personally — time is for lead gen and systems only
+- Lead gen assets must be replicable for both personal production AND producing agents
+- Build assets once, deploy at scale
+
+**Asset Build List (required to hit 1-year):**
+- [x] 180-day follow-up system — cancelled appt + post-meeting no-list sequences built (Jul 30) → load into GHL
+- [ ] Automated newsletter
+- [ ] Scripts (cold call, objection handling, close)
+- [ ] AI follow-up automation
+- [ ] Qualifying questions framework
+- [ ] Appointment process (set → confirm → sit)
+- [ ] Client Concierge — Pre-Active
+- [ ] Client Concierge — Active
+- [ ] Client Concierge — Under Contract
+- [ ] Closing process
+- [ ] Paid Ads Playbook (full 11-step system)
+- [ ] Agent attraction inbound system
+- [ ] ISA integration & training system (sourcing, onboarding packet, follow-up cadence, KPI tracking)
+
+---
+
+## 90-Day Plan: July 22 – October 21, 2026
+
+### Track 1: Paid Ads (High Key Solutions)
+
+**STATUS: PAUSED as of Sept 16, 2026 — resuming 2027.** Decision: hiring a sales ISA for cold calling is cheaper than running paid ads for lead volume right now. Effort is reallocating to building the ISA cold-calling follow-up system (see `plans/2026-09-16-isa-cold-calling-followup-system.md`). The 11-step playbook and metrics below stay documented as-is; pick back up in 2027.
+
+**Result:** Get first paying client. Know the numbers cold.
+
+| Metric to Understand | Status |
+|---------------------|--------|
+| Cost per lead (CPL) | — |
+| Cost per appointment (CPA) | — |
+| Cost per client (CPC) | — |
+| Which audience converts | — |
+| Which ad works | — |
+| Which offer works | — |
+| Which follow-up converts | — |
+
+**Output by Day 90:** *"I know how to spend $X to get $Y"* — a repeatable, documented ads playbook covering all 11 steps (Audience → Referral).
+
+**11-Step Paid Ads Playbook to Build:**
+1. Audience — who we target
+2. Offer — what we give them
+3. Ad — what message gets attention
+4. Funnel — where they go
+5. Follow-up — how we contact them
+6. Qualification — how we identify serious prospects
+7. Appointment — how we convert them
+8. Sales — how we close them
+9. Client Experience — how we deliver
+10. Review — how we turn client into social proof
+11. Referral — how we turn one client into three
+
+---
+
+### Track 2: Cold Calling (PROAGENT Production)
+
+**Results by Day 90:**
+- 3–4 listings taken per month (maintain inventory)
+- 180-day follow-up system live (text + email)
+- Automated newsletter running
+
+| 90-Day Milestone | Target | Status |
+|-----------------|--------|--------|
+| Listings taken/month | 3–4 | 4 taken in July so far ✅ |
+| 180-day follow-up system built | Done by Aug 31 | Not started |
+| Automated newsletter live | Done by Sep 30 | Not started |
+| Closings/month | 2–3 | 1 in July so far |
+
+---
+
+### Track 3: COLLAB (Agent Recruitment)
+
+**Result by Day 90:** Meaningful progress toward 100 producing agents. Inbound agent attraction system started.
+
+| 90-Day Milestone | Target | Current |
+|-----------------|--------|---------|
+| Producing agents | 30+ by Oct 21 | 16 |
+| Monthly revshare | Growing toward $10k | — |
+| Inbound agent system | Started | Not started |
+
+---
+
+### Track 4: ISA Integration & Training System (Sales Team)
+
+**Why this track exists:** Replaces Track 1's paid-ads lead-volume strategy for now (paused Sept 16, 2026 — see Track 1). Hiring ISAs is the cheaper path to the contact volume needed to hit the 2 appts/day goal, but only if there's a real system behind it — not just a hire.
+
+**Result:** A repeatable system to integrate and train ISAs on the sales team for follow-up, cold calling, and appointment setting — built once, reused for every ISA hired, not re-invented per person.
+
+**Full build spec:** `plans/2026-09-16-isa-cold-calling-followup-system.md`
+
+| 90-Day Milestone | Target | Status |
+|-----------------|--------|--------|
+| Cold call script + objection handling doc finalized | Blocking — before sourcing | Partial (existing asset) |
+| ISA #1 sourced and hired | — | Not started |
+| Onboarding packet (script + ramp plan) written as standalone doc | Reusable for ISA #2+ | Not started |
+| Disposition taxonomy + handoff SLA (5-min appt handoff, 24h confirm) live in Mojo/GHL | — | Not started |
+| ISA KPI tracking folded into weekly scorecard | — | Not started |
+| ISA #1 fully ramped (dials solo, meets contact floor) | By Day 90 | Not started |
+
+**Non-negotiable for this track:** every piece of it — script, disposition rules, ramp plan, KPI targets, CRM structure — must be written as a standalone system an ISA follows, not something a hire learns informally. That's what makes ISA #2, #3... a hiring decision instead of a rebuild.
+
+---
+
+## Weekly Non-Negotiables
+
+Every week, regardless of what else is happening:
+
+**PROAGENT:**
+1. 60+ seller contacts
+2. 3 appts set minimum
+3. Confirm every appt 24h before (fix show rate)
+4. 1 new listing per week (4/month)
+
+**COLLAB:**
+5. 5+ agent discovery calls
+6. 1+ three-way per week
+7. Push at least 1 agent toward verbal/onboard
+
+**HKS / Systems:**
+8. At least 1 hour/week on asset building (follow-up system, newsletter, ads playbook, ISA integration & training system)
+
+---
+
+## What Success Looks Like at Day 90 (Oct 21, 2026)
+
+- First HKS paid client acquired and ads playbook documented
+- Know CPL/CPA/CPC from real data
+- 180-day follow-up system live and running automatically
+- Automated newsletter sending weekly
+- 25–30+ producing agents in COLLAB
+- 3–4 listings/month is the consistent rhythm
+- $20k+ monthly revenue across all three streams
+
+---
+
+## Open Strategic Questions
+
+1. When does High Key Solutions take its first external client — and who is the ICP?
+2. At what agent count does revshare become the primary income focus vs. personal production?
+3. What content engine feeds agent inbound — YouTube, paid ads, or both?
 
 ---
 
@@ -337,6 +561,63 @@ Repurposing (one filming session → multiple assets):
 Batch filming: Film multiple videos in 1-2 sittings, change outfits between videos, stagger one per week.
 
 CTA: Free home valuation / "what's my home worth" — converts seller-intent viewers far better than "DM me"
+
+**YouTube Script Guidelines:**
+
+Every YouTube script I write for Ashley must follow these rules:
+
+*Structure (in order):*
+1. Hook — open with a real moment, story, or bold statement. No formal intros. Get into it immediately.
+2. Relatable bridge — connect the hook to why the viewer should care
+3. Body — deliver the value (teaching, breakdown, story arc, tools)
+4. Close — wrap with a clear next step
+
+*Call to Action — minimum 3 times per long-form video:*
+- CTA #1 (Early — around 1–2 min): Light ask, low friction. Example: "Subscribe if you want more of this" or "Drop a comment if you've felt this way"
+- CTA #2 (Mid — after the main value): Drive to the TAKEOVER or High Key Solutions waitlist. Include the link: https://forms.gle/9Z9v8ae5Vb2tWwu97
+- CTA #3 (End): Strongest ask. Repeat the link, tell them exactly what to do. "DM me MARKET / AI / COLLAB" or "Click the link below and get on the list"
+
+*Tone rules:*
+- Write like Ashley talks — direct, real, no corporate language
+- No formal intros ("Hi guys, welcome back to my channel")
+- Lead with the story or the moment, not the topic
+- Swearing is okay where it fits naturally — don't force it, don't sanitize it
+- Vulnerability is a feature, not a weakness — lean into real moments
+
+*Audience split — Ashley speaks to two audiences:*
+- Sellers (Houston homeowners thinking about selling)
+- Agents (real estate agents who want better systems, training, and results)
+- Most videos serve one primary audience; label which one in the script header
+
+*Shorts rules:*
+- Every long-form video must have 3 Short pull suggestions identified in the script
+- Shorts should work standalone — no context needed from the main video
+- Best Short moments: a single quotable line, a raw reaction, a 30-second teaching moment
+
+*Links to always include in descriptions:*
+- TAKEOVER Discord: https://forms.gle/9Z9v8ae5Vb2tWwu97
+- Link to full video (when the clip is a Short or derivative)
+
+*Production & B-Roll — every long-form script must include:*
+
+1. **Talking head markers** — label which sections are talking head only (no screen needed) so Ashley knows when to just deliver to camera
+2. **Screen record list** — for every tool, system, or result mentioned in the script, specify exactly what to show on screen:
+   - What app/tool to open
+   - What specifically to navigate to or demonstrate
+   - How long to hold on that screen (usually 3–5 seconds)
+   - Whether to show a real example (a live text, a real brief, a real lead)
+3. **B-roll suggestions** — raw life moments that make the video feel real:
+   - Before dial session (phone, coffee, morning energy)
+   - During a call (show the dial, not necessarily the conversation)
+   - Reactions to something working or not working
+   - Behind the screen moments (opening laptop, opening Telegram)
+4. **Filming order recommendation** — always suggest filming screen records first, then talking head, so Ashley can reference what she filmed
+5. **"Money shot" callout** — identify the single most visual/compelling screen moment in the video and label it as the money shot — this is the clip most likely to become a Short or thumbnail
+
+Every script section should be labeled as one of:
+- *[TALKING HEAD]* — just Ashley to camera
+- *[SCREEN RECORD: description]* — what to show
+- *[B-ROLL: description]* — raw footage suggestion
 
 **YouTube Lead Handling:**
 - Double-dial for first 7 days until they pick up
