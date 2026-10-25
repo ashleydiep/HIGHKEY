@@ -12,6 +12,23 @@
 | Google Calendar | Appointment scheduling | Will be provided |
 | ArchAgent | Pull expired listings data | Shared login |
 | REDX | Pull circle prospecting lists | Shared login |
+| Dialpad | VOIP number for calling/texting leads | Seat + number added to existing company account |
+| Facebook | Daily Cooley Call, training groups, Ash ISA Group | Friend/group additions below |
+
+---
+
+## 0. Account Setup Checklist (Admin — before ISA's first day)
+
+- [ ] MOJO account created (individual login)
+- [ ] GHL access granted, ISA tag configured
+- [ ] Google Calendar shared
+- [ ] ArchAgent shared login provided
+- [ ] REDX shared login provided
+- [ ] **Dialpad** — add ISA as a seat on the existing company account and assign a VOIP number
+- [ ] **Facebook** — ISA sends friend requests to Michelle, Ashley, and Cooley
+- [ ] ISA added into **Cooley's training group(s)**
+- [ ] ISA added into **Ash ISA Group**
+- [ ] ISA Tracker (Google Sheet) template shared
 
 ---
 

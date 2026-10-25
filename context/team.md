@@ -36,6 +36,12 @@ As a founder, your relationships are your leverage. The AI OS should know who's 
 |------|------|-------|-------|
 | Ashley Diep | Sales Manager | ashleydiep@exprealty.com | Handles getting and retaining new clients |
 
+### Inside Sales (ISA)
+
+| Name | Role | Email | Notes |
+|------|------|-------|-------|
+| Josh | ISA #1 | — | Hired October 2026, onboarding in progress. Cold calling (expireds, circle prospecting, FSBO) to feed listing appointments. Numbers logged to `isa_daily_kpis` (Supabase) with `isa_name = "Josh"`. See `assets/isa-onboarding/` for onboarding materials. |
+
 ---
 
 ## Key Relationships

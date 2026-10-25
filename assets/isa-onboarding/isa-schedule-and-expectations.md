@@ -19,6 +19,14 @@
 
 ---
 
+## Recurring Schedule Expectations
+
+- **7:30am Roleplay — every day.** Non-negotiable, part of Daily Breakfast Club above.
+- **Friday 1:1** — weekly check-in with Ashley.
+- **Call recording review — once a week minimum.**
+
+---
+
 ## Daily Minimums
 
 These are the non-negotiables. Every working day.
@@ -53,6 +61,21 @@ These are the non-negotiables. Every working day.
 | Week 2 | 75–100/day | 1/day | Rhythm, objection handling |
 | Week 3 | 100–125/day | 1–2/day | Consistency |
 | Week 4+ | 150+/day | 2–3/day | Full production |
+
+---
+
+## Training Level Timeline (30/60/90)
+
+Graduation between levels is based on whichever milestone below is reached, and rolls back if the checkpoint isn't met.
+
+| Period | Training Level | Graduate When |
+|--------|---------------|---------------|
+| Days 0–30 | Calling together with Ashley | 30 days elapsed **or** 3 appointments/week — whichever comes first |
+| Days 30–60 | Solo calling, monitored via Discord | Consistently hitting 1 appointment/day |
+| Days 60–90+ | Full production | Expect 2 appointments/day |
+| Day 90 | Evaluation checkpoint | Performance review for a compensation bump |
+
+> **Rollback rule:** If the 30, 60, or 90-day expectation isn't met at that checkpoint, roll back to the previous training level.
 
 ---
 
